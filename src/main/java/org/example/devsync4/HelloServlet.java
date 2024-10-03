@@ -24,19 +24,6 @@ public class HelloServlet extends HttpServlet {
             message = "Error connecting to the database: " + e.getMessage();
         }
 
-
-//        UserRepository userRepository = new UserRepository();
-//        User user = new User();
-//        user.setUsername("usr");
-//        user.setFirstName("Jack");
-//        user.setLastName("Smith");
-//        user.setEmail("jack@example.com");
-//        user.setPassword("password");
-//        user.setRole(Role.USER);
-//        try {
-//            userRepository.save(user);
-//        }catch (Exception e) {
-//            message = "Error saving user: " + e.getMessage();
         }
 
 //
