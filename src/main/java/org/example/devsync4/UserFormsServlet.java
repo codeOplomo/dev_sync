@@ -1,7 +1,5 @@
 package org.example.devsync4;
 
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -11,14 +9,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.example.devsync4.entities.User;
 import org.example.devsync4.entities.enumerations.Role;
 import org.example.devsync4.repositories.UserRepository;
-import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.List;
 
-@WebServlet(name = "addUser", value = "/addUser")
-public class AddUserServlet extends HttpServlet {
+@WebServlet(name = "userForms", value = "/userForms")
+public class UserFormsServlet extends HttpServlet {
 
     // Constants for response messages and URLs
     private static final String SUCCESS_MESSAGE = "User added successfully!";
@@ -30,7 +26,6 @@ public class AddUserServlet extends HttpServlet {
 
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-
         List<User> users = userRepository.findAll();
         request.setAttribute("users", users);
         RequestDispatcher dispatcher = request.getRequestDispatcher("userForm.jsp");
@@ -54,10 +49,12 @@ public class AddUserServlet extends HttpServlet {
             user.setRole(Role.valueOf(role));
 
             userRepository.update(user);
-            response.sendRedirect("users?action=update&message=User updated successfully");
+            response.sendRedirect("index?action=update&message=User updated successfully");
+
         } else if ("delete".equals(action) && id != null) {
             userRepository.delete(Long.parseLong(id));
-            response.sendRedirect("users?action=delete&message=User deleted successfully");
+            response.sendRedirect("index?action=delete&message=User deleted successfully");
+
         } else {
             User user = new User();
             user.setName(fname);
@@ -65,9 +62,7 @@ public class AddUserServlet extends HttpServlet {
             user.setPassword(password);
             user.setRole(Role.valueOf(role));
             userRepository.save(user);
-            response.sendRedirect("addUser?action=add&message=User added successfully");
+            response.sendRedirect("index?action=add&message=User added successfully");
         }
     }
-
-
 }

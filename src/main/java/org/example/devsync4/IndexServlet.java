@@ -15,16 +15,11 @@ import java.util.List;
 
 @WebServlet("/index")
 public class IndexServlet extends HttpServlet {
-    private UserRepository userRepo;
-
-    @Override
-    public void init() throws ServletException {
-        userRepo = new UserRepository(); // Assuming you have a UserService class to interact with the DB
-    }
+    private final UserRepository userRepository = new UserRepository();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        List<User> users = userRepo.findAll();
+        List<User> users = userRepository.findAll();
         request.setAttribute("users", users);
         request.getRequestDispatcher("index.jsp").forward(request, response);
     }

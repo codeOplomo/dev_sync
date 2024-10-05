@@ -106,7 +106,7 @@
   </ul>
   <% } %>
 
-  <form action="addUser" method="post">
+  <form action="userForms" method="post">
     <label for="name">Name:</label>
     <input type="text" id="name" name="name" required>
 
