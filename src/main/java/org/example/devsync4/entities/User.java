@@ -4,9 +4,11 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.example.devsync4.entities.enumerations.Role;
 
+import java.util.List;
+
 @Entity
 @Data
-@Table(name = "users") // Specify the table name if different
+@Table(name = "users")
 public class User {
 
     @Id
@@ -14,7 +16,7 @@ public class User {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String name; // Combined firstName and lastName into name
+    private String name;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -25,5 +27,6 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-
+    //@OneToMany(mappedBy = "assignedTo")
+    //private List<Task> tasks; // List of tasks assigned to the user (developer)
 }

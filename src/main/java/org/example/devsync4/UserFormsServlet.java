@@ -25,17 +25,10 @@ public class UserFormsServlet extends HttpServlet {
     private final UserRepository userRepository = new UserRepository();
 
 
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        List<User> users = userRepository.findAll();
-        request.setAttribute("users", users);
-        RequestDispatcher dispatcher = request.getRequestDispatcher("userForm.jsp");
-        dispatcher.forward(request, response);
-    }
-
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
         String id = request.getParameter("id");
-        String fname = request.getParameter("name");
+        String name = request.getParameter("name");
         String email = request.getParameter("email");
         String password = request.getParameter("password");
         String role = request.getParameter("role");
@@ -43,26 +36,26 @@ public class UserFormsServlet extends HttpServlet {
         if ("update".equals(action) && id != null) {
             User user = new User();
             user.setId(Long.parseLong(id));
-            user.setName(fname);
+            user.setName(name);
             user.setEmail(email);
             user.setPassword(password);
             user.setRole(Role.valueOf(role));
 
             userRepository.update(user);
-            response.sendRedirect("index?action=update&message=User updated successfully");
+            response.sendRedirect("users?action=update&message=User updated successfully");
 
         } else if ("delete".equals(action) && id != null) {
             userRepository.delete(Long.parseLong(id));
-            response.sendRedirect("index?action=delete&message=User deleted successfully");
+            response.sendRedirect("users?action=delete&message=User deleted successfully");
 
         } else {
             User user = new User();
-            user.setName(fname);
+            user.setName(name);
             user.setEmail(email);
             user.setPassword(password);
             user.setRole(Role.valueOf(role));
             userRepository.save(user);
-            response.sendRedirect("index?action=add&message=User added successfully");
+            response.sendRedirect("users?action=add&message=User added successfully");
         }
     }
 }

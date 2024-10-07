@@ -97,14 +97,6 @@
 <body>
 <div class="container">
   <h2>Add User</h2>
-  <% List<User> users = (List<User>) request.getAttribute("users"); %>
-  <% if (users != null) { %>
-  <ul>
-    <% for (User user : users) { %>
-    <li><%= user %></li>
-    <% } %>
-  </ul>
-  <% } %>
 
   <form action="userForms" method="post">
     <label for="name">Name:</label>
