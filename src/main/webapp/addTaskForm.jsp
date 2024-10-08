@@ -1,4 +1,7 @@
-<%--
+<%@ page import="org.example.devsync4.entities.User" %>
+<%@ page import="java.util.List" %>
+<%@ page import="org.example.devsync4.entities.enumerations.TaskStatus" %>
+<%@ page import="org.example.devsync4.entities.Tag" %><%--
   Created by IntelliJ IDEA.
   User: Youcode
   Date: 07/10/2024
@@ -103,18 +106,49 @@
 
       <label for="status">Status:</label>
       <select id="status" name="status" required>
-        <option value="PENDING">PENDING</option>
-        <option value="IN_PROGRESS">IN PROGRESS</option>
-        <option value="COMPLETED">COMPLETED</option>
+        <%
+          TaskStatus[] taskStatuses = (TaskStatus[]) request.getAttribute("taskStatuses");
+          if (taskStatuses != null) {
+            for (TaskStatus status : taskStatuses) {
+        %>
+        <option value="<%= status.name() %>"><%= status.name() %></option>
+        <%
+            }
+          }
+        %>
       </select>
 
       <label for="assignedTo">Assign To:</label>
       <select id="assignedTo" name="assignedTo">
-        <option value="">Unassigned</option> <!-- This allows for leaving it null -->
-        <c:forEach var="developer" items="${developers}">
-          <option value="${developer.id}">${developer.name}</option>
-        </c:forEach>
+        <option value="">Unassigned</option>
+        <%
+          List<User> developers = (List<User>) request.getAttribute("developers");
+          if (developers != null) {
+            for (User developer : developers) {
+        %>
+        <option value="<%= developer.getId() %>"><%= developer.getName() %></option>
+        <%
+            }
+          }
+        %>
       </select>
+
+      <label>Tags:</label>
+      <div id="tags">
+        <%
+          List<Tag> tags = (List<Tag>) request.getAttribute("tags");
+          if (tags != null) {
+            for (Tag tag : tags) {
+        %>
+        <div class="tag-badge">
+          <input type="checkbox" id="tag_<%= tag.getId() %>" name="tags" value="<%= tag.getId() %>">
+          <label for="tag_<%= tag.getId() %>"><%= tag.getName() %></label>
+        </div>
+        <%
+            }
+          }
+        %>
+      </div>
 
       <input type="submit" value="Add Task">
     </form>

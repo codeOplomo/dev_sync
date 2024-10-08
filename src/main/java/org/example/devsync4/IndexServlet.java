@@ -4,8 +4,6 @@ package org.example.devsync4;
 import jakarta.servlet.http.HttpSession;
 import org.example.devsync4.entities.User;
 import org.example.devsync4.entities.enumerations.Role;
-import org.example.devsync4.repositories.UserRepository;
-
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -15,7 +13,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.example.devsync4.services.UserService;
 
 import java.io.IOException;
-import java.util.List;
 
 @WebServlet("/login")
 public class IndexServlet extends HttpServlet {
@@ -33,6 +30,7 @@ public class IndexServlet extends HttpServlet {
             session.setAttribute("user", user);
 
             if (Role.MANAGER.equals(user.getRole())) {
+                session.setAttribute("loggedInManager", user);
                 response.sendRedirect("homeDash.jsp");
             } else {
                 response.sendRedirect("index.jsp");

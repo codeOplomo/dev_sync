@@ -6,23 +6,22 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.example.devsync4.entities.User;
-import org.example.devsync4.entities.enumerations.Role;
-import org.example.devsync4.services.UserService;
+import org.example.devsync4.entities.Tag;
+import org.example.devsync4.entities.Task;
+import org.example.devsync4.repositories.TagRepository;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
-@WebServlet(name = "users", value = "/users")
-public class UsersServlet extends HttpServlet {
 
-    private final UserService userService = new UserService();
+@WebServlet(name = "tags", value = "/tags")
+public class TagServlet extends HttpServlet {
+    private final TagRepository tagRepository = new TagRepository();
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        List<User> users = userService.findAll();
-        request.setAttribute("users", users);
-        RequestDispatcher dispatcher = request.getRequestDispatcher("users.jsp");
+        List<Tag> tasks = tagRepository.findAll();
+        request.setAttribute("tags", tasks);
+        RequestDispatcher dispatcher = request.getRequestDispatcher("tags.jsp");
         dispatcher.forward(request, response);
     }
 }

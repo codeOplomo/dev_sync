@@ -6,12 +6,16 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.devsync4.entities.Tag;
 import org.example.devsync4.entities.Task;
 import org.example.devsync4.entities.User;
 import org.example.devsync4.entities.enumerations.Role;
 import org.example.devsync4.entities.enumerations.TaskStatus;
 import org.example.devsync4.repositories.TaskRepository;
 import org.example.devsync4.repositories.UserRepository;
+import org.example.devsync4.services.TagService;
+import org.example.devsync4.services.TaskService;
+import org.example.devsync4.services.UserService;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -20,26 +24,31 @@ import java.util.List;
 @WebServlet(name = "taskForms", value = "/taskForms")
 public class TaskFormsServlet extends HttpServlet {
 
-    // Constants for response messages and URLs
-    private static final String SUCCESS_MESSAGE = "Task added successfully!";
-    private static final String ERROR_MESSAGE_PREFIX = "Error adding task: ";
-    private static final String ADD_TASK_FORM_URL = "taskForm.jsp";
-    private static final String HOME_URL = "taskList.jsp";
+    private TaskService taskService;
+    private UserService userService;
+    private TagService tagService; // Add TagService to handle tags
 
-    private final TaskRepository taskRepository = new TaskRepository();
-    private final UserRepository userRepository = new UserRepository();
-
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // Fetch developers from the database
-        List<User> developers = userRepository.findByRole(Role.DEVELOPER);
-
-        // Set the list of developers as a request attribute
-        request.setAttribute("developers", developers);
-
-        // Forward the request to the JSP page
-        request.getRequestDispatcher(ADD_TASK_FORM_URL).forward(request, response);
+    public TaskFormsServlet() {
+        this.taskService = new TaskService();
+        this.userService = new UserService();
+        this.tagService = new TagService(); // Initialize TagService
     }
 
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        List<User> developers = userService.findByRole(Role.DEVELOPER);
+        request.setAttribute("developers", developers);
+
+        TaskStatus[] taskStatuses = TaskStatus.values();
+        request.setAttribute("taskStatuses", taskStatuses);
+
+        List<Tag> tags = tagService.findAll(); // Retrieve all tags from the database
+        request.setAttribute("tags", tags);
+
+        request.getRequestDispatcher("addTaskForm.jsp").forward(request, response);
+    }
+
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
         String id = request.getParameter("id");
@@ -48,46 +57,61 @@ public class TaskFormsServlet extends HttpServlet {
         String status = request.getParameter("status");
         String assignedToId = request.getParameter("assignedTo");
 
+        String[] selectedTagIds = request.getParameterValues("tags"); // Get selected tags
+
         User currentManager = (User) request.getSession().getAttribute("loggedInManager");
 
         if ("update".equals(action) && id != null) {
-            // Update an existing task
-            Task task = taskRepository.findById(Long.parseLong(id));
+            // Update task
+            Task task = taskService.findById(Long.parseLong(id));
             task.setTitle(title);
             task.setDescription(description);
             task.setStatus(TaskStatus.valueOf(status));
 
-            User assignedTo = userRepository.findById(Long.parseLong(assignedToId));
+            if (assignedToId != null && !assignedToId.isEmpty()) {
+                User assignedTo = userService.findById(Long.parseLong(assignedToId));
+                task.setAssignedTo(assignedTo);
+            }
 
-            task.setAssignedTo(assignedTo);
+            // Handle tags
+            if (selectedTagIds != null) {
+                List<Tag> tags = tagService.findByIds(selectedTagIds);
+                task.setTags(tags);
+            }
 
-            taskRepository.update(task);
+            taskService.update(task);
             response.sendRedirect("tasks?action=update&message=Task updated successfully");
 
         } else if ("delete".equals(action) && id != null) {
-            // Delete a task
-            taskRepository.delete(Long.parseLong(id));
+            // Delete task
+            taskService.delete(Long.parseLong(id));
             response.sendRedirect("tasks?action=delete&message=Task deleted successfully");
 
         } else {
-            // Add a new task
+            // Add new task
             Task task = new Task();
             task.setTitle(title);
             task.setDescription(description);
             task.setStatus(TaskStatus.valueOf(status));
 
             if (assignedToId != null && !assignedToId.isEmpty()) {
-                User assignedTo = userRepository.findById(Long.parseLong(assignedToId));
+                User assignedTo = userService.findById(Long.parseLong(assignedToId));
                 task.setAssignedTo(assignedTo);
-            } else {
-                task.setAssignedTo(null); // Leave unassigned if no developer is selected
             }
 
             task.setCreatedBy(currentManager);
             task.setCreatedAt(LocalDateTime.now());
 
-            taskRepository.save(task);
+            // Handle tags
+            if (selectedTagIds != null) {
+                List<Tag> tags = tagService.findByIds(selectedTagIds);
+                task.setTags(tags);
+            }
+
+            taskService.save(task);
             response.sendRedirect("tasks?action=add&message=Task added successfully");
         }
     }
 }
+
+

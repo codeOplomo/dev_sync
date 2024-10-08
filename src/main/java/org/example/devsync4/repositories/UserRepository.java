@@ -42,22 +42,15 @@ public class UserRepository {
 
     public List<User> findByRole(Role role) {
         EntityManager em = entityManagerFactory.createEntityManager(); // Create EntityManager
-        List<User> users = null;
         try {
-            em.getTransaction().begin();
-            // Fetch users with the specified role from the database
-            users = em.createQuery("SELECT u FROM User u WHERE u.role = :role", User.class)
+            return em.createQuery("SELECT u FROM User u WHERE u.role = :role", User.class)
                     .setParameter("role", role)
                     .getResultList();
-            em.getTransaction().commit();
-        } catch (Exception e) {
-            // Optionally log the exception or handle it accordingly
-            e.printStackTrace(); // Or use a logger
         } finally {
-            em.close(); // Ensure EntityManager is closed
+            em.close();
         }
-        return users; // Return the list of users
     }
+
 
     public void save(User user) {
         EntityManager entityManager = entityManagerFactory.createEntityManager();

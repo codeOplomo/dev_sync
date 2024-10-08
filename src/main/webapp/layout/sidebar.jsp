@@ -7,13 +7,22 @@
 --%>
 <!-- sidebar.jsp -->
 <div class="sidebar">
-    <!-- Add your sidebar content here -->
     <ul>
-        <li><a href="homeDash.jsp" class="active">Home</a></li>
-        <li><a href="users" class="active">Users</a></li>
-        <li><a href="tasks.jsp">Tasks</a></li>
-        <li><a href="#">Logout</a></li>
-        <!-- Other navigation links -->
+        <li>
+            <a href="homeDash.jsp" class="<%= request.getRequestURI().contains("homeDash.jsp") ? "active" : "" %>">Home</a>
+        </li>
+        <li>
+            <a href="users" class="<%= request.getRequestURI().contains("users") ? "active" : "" %>">Users</a>
+        </li>
+        <li>
+            <a href="tasks" class="<%= request.getRequestURI().contains("tasks") ? "active" : "" %>">Tasks</a>
+        </li>
+        <li>
+            <a href="tags" class="" >Tags</a>
+        </li>
+        <li>
+            <a href="logout" class="<%= request.getRequestURI().contains("logout") ? "active" : "" %>">Logout</a>
+        </li>
     </ul>
 </div>
 
@@ -37,10 +46,6 @@
         margin: 10px 0;
     }
 
-
-    .sidebar a:hover {
-        text-decoration: underline;
-    }
     .sidebar a {
         padding: 15px;
         text-decoration: none;
@@ -58,4 +63,5 @@
         color: white;
     }
 </style>
+
 

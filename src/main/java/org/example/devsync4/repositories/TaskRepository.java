@@ -8,7 +8,9 @@ import org.example.devsync4.entities.Task;
 import java.util.List;
 
 public class TaskRepository {
-    private final EntityManagerFactory emf = Persistence.createEntityManagerFactory("devsync");
+    private final EntityManagerFactory emf = Persistence.createEntityManagerFactory("myJPAUnit");
+    //private final EntityManagerFactory emf = jakarta.persistence.Persistence.createEntityManagerFactory("myJPAUnit");
+
 
     public List<Task> findAll() {
         EntityManager em = emf.createEntityManager();

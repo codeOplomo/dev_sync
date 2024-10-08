@@ -5,6 +5,8 @@ import lombok.Data;
 import org.example.devsync4.entities.enumerations.TaskStatus;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -22,17 +24,25 @@ public class Task {
     private String description;
 
     @Enumerated(EnumType.STRING)
-    private TaskStatus status; // Assuming you will create this enum for task statuses
+    private TaskStatus status;
 
     @ManyToOne
     @JoinColumn(name = "assigned_to", nullable = true)
-    private User assignedTo; // Developer to whom the task is assigned
+    private User assignedTo;
 
     @ManyToOne
     @JoinColumn(name = "created_by", nullable = false)
-    private User createdBy; // Manager who created the task
+    private User createdBy;
 
     @Column(nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now(); // Timestamp for task creation
+    private LocalDateTime createdAt = LocalDateTime.now();
 
+    @ManyToMany
+    @JoinTable(
+            name = "task_tags",
+            joinColumns = @JoinColumn(name = "task_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private List<Tag> tags = new ArrayList<>();
 }
+

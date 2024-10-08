@@ -8,6 +8,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
 <%@ page import="org.example.devsync4.entities.User" %>
+<%@ page import="org.example.devsync4.entities.Task" %>
 <html>
 <head>
     <title>Dashboard - Manage Users</title>
@@ -134,10 +135,50 @@
 <!-- Content -->
 <div class="content">
     <div class="container">
-        <h2>Manage Users</h2>
-        <a href="addTaskForm.jsp" class="menu-option">Add Task</a>
+        <h2>Manage Tasks</h2>
+        <a href="taskForms" class="menu-option">Add Task</a>
+
+        <!-- Task Table -->
+        <table border="1" cellpadding="10" cellspacing="0" style="width:100%; margin-top: 20px; border-collapse: collapse;">
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Assigned To</th>
+                <th>Created By</th>
+                <th>Created At</th>
+            </tr>
+            </thead>
+            <tbody>
+            <%
+                List<Task> tasks = (List<Task>) request.getAttribute("tasks");
+                if (tasks != null && !tasks.isEmpty()) {
+                    for (Task task : tasks) {
+            %>
+            <tr>
+                <td><%= task.getTitle() %></td>
+                <td><%= task.getDescription() %></td>
+                <td><%= task.getStatus().name() %></td>
+                <td><%= task.getAssignedTo() != null ? task.getAssignedTo().getName() : "Unassigned" %></td>
+                <td><%= task.getCreatedBy().getName() %></td>
+                <td><%= task.getCreatedAt() %></td>
+            </tr>
+            <%
+                }
+            } else {
+            %>
+            <tr>
+                <td colspan="6" style="text-align:center;">No tasks available</td>
+            </tr>
+            <%
+                }
+            %>
+            </tbody>
+        </table>
     </div>
 </div>
+
 
 </body>
 </html>
