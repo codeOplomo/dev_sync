@@ -18,7 +18,7 @@ public class TagFormsServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
         String id = request.getParameter("id");
-        String name = request.getParameter("name");
+        String name = request.getParameter("tagName");
 
         // Handle update tag operation
         if ("update".equals(action) && id != null) {

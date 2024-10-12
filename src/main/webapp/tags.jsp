@@ -5,9 +5,17 @@
   Time: 21:24
   To change this template use File | Settings | File Templates.
 --%>
+
+<%
+    if (session.getAttribute("user") == null) {
+        response.sendRedirect("login");
+    }
+%>
+
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
 <%@ page import="org.example.devsync4.entities.Tag" %>
+<%@ page import="org.example.devsync4.entities.User" %>
 <html>
 <head>
     <title>Dashboard - Manage Tags</title>
@@ -173,8 +181,8 @@
         <form id="editForm" action="tagForms" method="post">
             <input type="hidden" id="tagId" name="id">
             <input type="hidden" name="action" value="update">
-            <label for="name">Tag Name:</label>
-            <input type="text" id="tagName" name="name" required>
+            <label for="tagName">Tag Name:</label>
+            <input type="text" id="tagName" name="tagName" required>
 
             <input type="submit" value="Update Tag">
         </form>

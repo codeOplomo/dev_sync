@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.example.devsync4.entities.enumerations.TaskStatus;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +28,7 @@ public class Task {
     private TaskStatus status;
 
     @ManyToOne
-    @JoinColumn(name = "assigned_to", nullable = true)
+    @JoinColumn(name = "assigned_to")
     private User assignedTo;
 
     @ManyToOne
@@ -37,6 +38,13 @@ public class Task {
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    // Add the new startDate and endDate columns
+    @Column(nullable = false)
+    private LocalDate startDate;
+
+    @Column(nullable = false)
+    private LocalDate endDate;
+
     @ManyToMany
     @JoinTable(
             name = "task_tags",
@@ -45,4 +53,5 @@ public class Task {
     )
     private List<Tag> tags = new ArrayList<>();
 }
+
 

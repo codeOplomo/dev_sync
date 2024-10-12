@@ -1,4 +1,4 @@
-<%--
+<%@ page import="org.example.devsync4.entities.enumerations.Role" %><%--
   Created by IntelliJ IDEA.
   User: Youcode
   Date: 07/10/2024
@@ -6,8 +6,15 @@
   To change this template use File | Settings | File Templates.
 --%>
 <!-- sidebar.jsp -->
-<div class="sidebar">
+
+
+<%
+    User currentUser = (User) session.getAttribute("user");
+%>
+
+<div class="sidebar <%= currentUser.getRole() != null && Role.DEVELOPER.equals(currentUser.getRole()) ? "developer" : "manager" %>">
     <ul>
+        <% if (currentUser.getRole() != null && Role.MANAGER.equals(currentUser.getRole())) { %>
         <li>
             <a href="homeDash.jsp" class="<%= request.getRequestURI().contains("homeDash.jsp") ? "active" : "" %>">Home</a>
         </li>
@@ -18,8 +25,13 @@
             <a href="tasks" class="<%= request.getRequestURI().contains("tasks") ? "active" : "" %>">Tasks</a>
         </li>
         <li>
-            <a href="tags" class="" >Tags</a>
+            <a href="tags" class="<%= request.getRequestURI().contains("tags") ? "active" : "" %>">Tags</a>
         </li>
+        <% } else if (currentUser.getRole() != null && Role.DEVELOPER.equals(currentUser.getRole())) { %>
+        <li>
+            <a href="devDash" class="<%= request.getRequestURI().contains("devDash") ? "active" : "" %>">Dev Dashboard</a>
+        </li>
+        <% } %>
         <li>
             <a href="logout" class="<%= request.getRequestURI().contains("logout") ? "active" : "" %>">Logout</a>
         </li>
@@ -29,12 +41,19 @@
 <style>
     .sidebar {
         width: 200px;
-        background-color: #333;
         height: 100vh;
         position: fixed;
         top: 0;
         left: 0;
         padding: 20px;
+    }
+
+    .manager {
+        background-color: #333;
+    }
+
+    .developer {
+        background-color: #2c3e50; /* Different color for developers */
     }
 
     .sidebar ul {
@@ -63,5 +82,4 @@
         color: white;
     }
 </style>
-
 

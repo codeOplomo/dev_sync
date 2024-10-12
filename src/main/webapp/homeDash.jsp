@@ -5,6 +5,12 @@
   Time: 17:05
   To change this template use File | Settings | File Templates.
 --%>
+<%
+    if (session.getAttribute("user") == null) {
+        response.sendRedirect("login");
+    }
+%>
+
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
 <%@ page import="org.example.devsync4.entities.User" %>

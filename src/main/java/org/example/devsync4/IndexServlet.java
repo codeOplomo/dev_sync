@@ -29,9 +29,15 @@ public class IndexServlet extends HttpServlet {
             HttpSession session = request.getSession();
             session.setAttribute("user", user);
 
+            // Set role in session for use in JSP
+            session.setAttribute("userRole", user.getRole());
+
             if (Role.MANAGER.equals(user.getRole())) {
                 session.setAttribute("loggedInManager", user);
                 response.sendRedirect("homeDash.jsp");
+            } else if (Role.DEVELOPER.equals(user.getRole())) {  // Check for developer role
+                session.setAttribute("loggedInDeveloper", user);
+                response.sendRedirect("devDash");
             } else {
                 response.sendRedirect("index.jsp");
             }
@@ -40,6 +46,7 @@ public class IndexServlet extends HttpServlet {
             request.getRequestDispatcher("login.jsp").forward(request, response);
         }
     }
+
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

@@ -1,7 +1,13 @@
+<%
+  if (session.getAttribute("user") == null) {
+    response.sendRedirect("login");
+  }
+%>
 <%@ page import="org.example.devsync4.entities.User" %>
 <%@ page import="java.util.List" %>
 <%@ page import="org.example.devsync4.entities.enumerations.TaskStatus" %>
-<%@ page import="org.example.devsync4.entities.Tag" %><%--
+<%@ page import="org.example.devsync4.entities.Tag" %>
+<%@ page import="org.example.devsync4.entities.enumerations.Role" %><%--
   Created by IntelliJ IDEA.
   User: Youcode
   Date: 07/10/2024
@@ -104,20 +110,12 @@
       <label for="description">Description:</label>
       <textarea id="description" name="description" rows="4" required></textarea>
 
-      <label for="status">Status:</label>
-      <select id="status" name="status" required>
-        <%
-          TaskStatus[] taskStatuses = (TaskStatus[]) request.getAttribute("taskStatuses");
-          if (taskStatuses != null) {
-            for (TaskStatus status : taskStatuses) {
-        %>
-        <option value="<%= status.name() %>"><%= status.name() %></option>
-        <%
-            }
-          }
-        %>
-      </select>
+      <%
+        Role userRole = (Role) session.getAttribute("userRole");
+        boolean isManager = Role.MANAGER.equals(userRole);
+      %>
 
+      <% if (isManager) { %>
       <label for="assignedTo">Assign To:</label>
       <select id="assignedTo" name="assignedTo">
         <option value="">Unassigned</option>
@@ -132,6 +130,15 @@
           }
         %>
       </select>
+      <% } %>
+
+      <!-- Start Date Picker -->
+      <label for="startDate">Start Date:</label>
+      <input type="date" id="startDate" name="startDate" required>
+
+      <!-- End Date Picker -->
+      <label for="endDate">End Date:</label>
+      <input type="date" id="endDate" name="endDate" required>
 
       <label>Tags:</label>
       <div id="tags">
@@ -155,6 +162,48 @@
     <a href="tasks" class="back-link">Back</a>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const today = new Date();
+
+    // Set the date picker values
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+
+    // Initially disable the end date input
+    endDateInput.disabled = true;
+
+    // Helper function to format date as 'YYYY-MM-DD'
+    const formatDate = (date) => {
+      return date.toISOString().split('T')[0];
+    };
+
+    // Set the minimum date for start date to today + 3 days
+    const minStartDate = new Date(today);
+    minStartDate.setDate(today.getDate() + 3);
+    startDateInput.setAttribute('min', formatDate(minStartDate));
+
+    // Handle start date change event
+    startDateInput.addEventListener('change', function () {
+      const selectedStartDate = new Date(startDateInput.value);
+
+      // Enable the end date input after selecting a start date
+      endDateInput.disabled = false;
+
+      // Set the minimum end date to be one day after the selected start date
+      const minEndDate = new Date(selectedStartDate);
+      minEndDate.setDate(selectedStartDate.getDate() + 1);
+      endDateInput.setAttribute('min', formatDate(minEndDate));
+
+      // Clear any previously selected end date if it's invalid
+      if (endDateInput.value && new Date(endDateInput.value) <= minEndDate) {
+        endDateInput.value = '';
+      }
+    });
+  });
+</script>
+
 </body>
 
 </html>
