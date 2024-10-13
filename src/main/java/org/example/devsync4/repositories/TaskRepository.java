@@ -15,12 +15,13 @@ public class TaskRepository {
 
     public List<Task> getTasksAssignedToUser(Long userId) {
         try (EntityManager em = emf.createEntityManager()) {
-            String jpql = "SELECT t FROM Task t WHERE t.assignedTo.id = :userId";
+            String jpql = "SELECT t FROM Task t LEFT JOIN FETCH t.tags WHERE t.assignedTo.id = :userId";
             TypedQuery<Task> query = em.createQuery(jpql, Task.class);
             query.setParameter("userId", userId);
             return query.getResultList();
         }
     }
+
 
     public List<Task> findByStatus(TaskStatus status) {
         EntityManager em = emf.createEntityManager();

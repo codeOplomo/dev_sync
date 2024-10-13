@@ -6,9 +6,11 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.example.devsync4.entities.Tag;
 import org.example.devsync4.entities.Task;
 import org.example.devsync4.entities.User;
 import org.example.devsync4.entities.enumerations.Role;
+import org.example.devsync4.services.TagService;
 import org.example.devsync4.services.TaskService;
 
 import java.io.IOException;
@@ -19,6 +21,7 @@ import java.util.List;
 public class DevServlet extends HttpServlet {
 
     private TaskService taskService = new TaskService();
+    private TagService tagService = new TagService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -39,8 +42,12 @@ public class DevServlet extends HttpServlet {
                     managersTasks.add(task);
                 }
             }
+
+            List<Tag> allTags = tagService.findAll();
+
             request.setAttribute("developerTasks", developerTasks);
             request.setAttribute("managersTasks", managersTasks);
+            request.setAttribute("allTags", allTags);
 
             request.getRequestDispatcher("devDash.jsp").forward(request, response);
         } else {

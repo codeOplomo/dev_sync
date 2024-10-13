@@ -1,5 +1,7 @@
 package org.example.devsync4.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.example.devsync4.entities.enumerations.TaskStatus;
@@ -35,6 +37,7 @@ public class Task {
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
+    @Expose(serialize = false)
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 

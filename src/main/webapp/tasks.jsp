@@ -38,15 +38,16 @@
         .modal {
             position: fixed;
             z-index: 1000;
-            right: -400px;
+            right: -100px; /* Start outside the viewport */
             top: 0;
             width: 400px;
             height: 100%;
             background-color: rgba(255, 255, 255, 1);
-            transition: right 0.8s ease;
+            transition: right 0.8s ease; /* Transition for the right property */
+            box-shadow: -2px 0 5px rgba(0,0,0,0.2); /* Add some shadow for better visibility */
         }
         .modal.show {
-            right: 0;
+            right: 0; /* When shown, the modal slides in to the viewport */
         }
         .modal-content {
             padding: 20px;

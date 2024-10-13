@@ -16,8 +16,10 @@
 <%@ page import="java.util.List" %>
 <%@ page import="org.example.devsync4.entities.Task" %>
 <%@ page import="org.example.devsync4.entities.User" %>
+<%@ page import="org.example.devsync4.entities.Tag" %>
 <%@ page import="org.example.devsync4.entities.enumerations.TaskStatus" %>
 <%@ page import="java.time.LocalDate" %>
+<%@ page import="java.util.stream.Collectors" %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -27,6 +29,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <title>Developer Dashboard</title>
     <style>
         body {
@@ -60,6 +63,14 @@
         h2 {
             margin-bottom: 20px;
         }
+
+        .tag-badge {
+            background-color: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-right: 5px;
+            display: inline-block;
+        }
     </style>
 </head>
 
@@ -78,7 +89,6 @@
             <table class="table table-bordered">
                 <thead class="thead-light">
                 <tr>
-                    <th>Task ID</th>
                     <th>Title</th>
                     <th>Description</th>
                     <th>Status</th>
@@ -91,9 +101,9 @@
                     List<Task> developerTasks = (List<Task>) request.getAttribute("developerTasks");
                     if (developerTasks != null && !developerTasks.isEmpty()) {
                         for (Task task : developerTasks) {
+                            String tags = task.getTags().stream().map(Tag::getName).collect(Collectors.joining(", "));
                 %>
                 <tr>
-                    <td><%= task.getId() %></td>
                     <td><%= task.getTitle() %></td>
                     <td><%= task.getDescription() %></td>
                     <td>
@@ -106,17 +116,18 @@
                             <option value="OVERDUE" <%= task.getStatus() == TaskStatus.OVERDUE ? "selected" : "" %>>Overdue</option>
                         </select>
                     </td>
-                    <td><%= "N/A" %></td>
+                    <td><%= task.getEndDate() != null ? task.getEndDate() : "N/A" %></td>
                     <td>
-                        <a href="taskUpdateForm?taskId=<%= task.getId() %>" class="btn btn-sm btn-warning" title="Update">
+                        <button type="button" class="btn btn-sm btn-warning" title="Update"
+                                data-bs-toggle="modal" data-bs-target="#updateTaskModal"
+                                onclick="loadTaskData('<%= task.getId() %>', '<%= task.getTitle() %>', '<%= task.getDescription() %>', '<%= task.getEndDate() %>', '<%= tags %>')">
                             <i class="fa-solid fa-pen"></i>
-                        </a>
-                        <form action="deleteTask" method="post" style="display:inline;">
-                            <input type="hidden" name="taskId" value="<%= task.getId() %>">
-                            <button type="submit" class="btn btn-sm btn-danger" title="Delete">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </form>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-danger" title="Delete"
+                                data-bs-toggle="modal" data-bs-target="#deleteTaskModal"
+                                onclick="setTaskToDelete('<%= task.getId() %>')">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
                     </td>
                 </tr>
                 <%
@@ -138,7 +149,6 @@
             <table class="table table-bordered">
                 <thead class="thead-light">
                 <tr>
-                    <th>Task ID</th>
                     <th>Title</th>
                     <th>Description</th>
                     <th>Status</th>
@@ -154,7 +164,6 @@
                         for (Task task : managerTasks) {
                 %>
                 <tr>
-                    <td><%= task.getId() %></td>
                     <td><%= task.getTitle() %></td>
                     <td><%= task.getDescription() %></td>
                     <td>
@@ -192,7 +201,97 @@
     </div>
 </div>
 
+<!-- Modal -->
+<div class="modal fade" id="updateTaskModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="updateTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateTaskModalLabel">Update Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateTaskForm" action="taskForms" method="post">
+                    <input type="hidden" name="id" id="taskId">
+                    <input type="hidden" name="action" value="update" >
+
+                    <div class="mb-3">
+                        <label for="taskTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="taskTitle" name="title" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="taskDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="taskDescription" name="description" rows="3" required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="endDate" class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="endDate" name="endDate" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="modalTags" class="form-label">Tags</label>
+                        <!-- Tags will be dynamically populated here as badges -->
+                        <div id="modalTags" class="tags-container"></div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Update Task</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteTaskModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="deleteTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteTaskModalLabel">Confirm Task Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this task?
+            </div>
+            <div class="modal-footer">
+                <form id="deleteTaskForm" action="taskForms" method="post">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="id" id="deleteTaskId">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <script>
+    function setTaskToDelete(taskId) {
+        document.getElementById('deleteTaskId').value = taskId;
+    }
+
+    function loadTaskData(id, title, description, endDate, tags) {
+        document.getElementById('taskId').value = id;
+        document.getElementById('taskTitle').value = title;
+        document.getElementById('taskDescription').value = description;
+        document.getElementById('endDate').value = endDate;
+
+        var tagsContainer = document.getElementById('modalTags');
+        tagsContainer.innerHTML = '';
+
+        var tagsArray = tags.split(',');
+        tagsArray.forEach(function(tag) {
+            var badge = document.createElement('span');
+            badge.classList.add('tag-badge');
+            badge.innerText = tag.trim();
+            tagsContainer.appendChild(badge);
+        });
+    }
+
     function updateTaskStatus(taskId, status) {
         var xhr = new XMLHttpRequest();
         xhr.open("POST", "updateTaskStatus", true);
@@ -215,26 +314,8 @@
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 
-<!-- Task Modal -->
-<div id="taskModal" class="modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalTitle">Task Title</h5>
-                <button type="button" class="close" onclick="closeTaskModal()" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p><strong>Description:</strong> <span id="modalDescription"></span></p>
-                <p><strong>Status:</strong> <span id="modalStatus"></span></p>
-                <p><strong>Created By:</strong> <span id="modalCreatedBy"></span></p>
-                <p><strong>Due Date:</strong> <span id="modalDueDate"></span></p>
-            </div>
-        </div>
-    </div>
-</div>
 </body>
 
 </html>
