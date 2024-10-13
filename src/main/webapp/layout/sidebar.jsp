@@ -11,75 +11,48 @@
 <%
     User currentUser = (User) session.getAttribute("user");
 %>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" crossorigin="anonymous">
 
-<div class="sidebar <%= currentUser.getRole() != null && Role.DEVELOPER.equals(currentUser.getRole()) ? "developer" : "manager" %>">
-    <ul>
+<div class="sidebar d-flex flex-column bg-dark text-white" style="width: 200px; height: 100vh; position: fixed; top: 0; left: 0; padding: 20px;">
+    <ul class="nav flex-column">
         <% if (currentUser.getRole() != null && Role.MANAGER.equals(currentUser.getRole())) { %>
-        <li>
-            <a href="homeDash.jsp" class="<%= request.getRequestURI().contains("homeDash.jsp") ? "active" : "" %>">Home</a>
+        <li class="nav-item">
+            <a href="homeDash.jsp" class="nav-link <%= request.getRequestURI().contains("homeDash.jsp") ? "active" : "" %>">
+                <i class="fas fa-home"></i> Home
+            </a>
         </li>
-        <li>
-            <a href="users" class="<%= request.getRequestURI().contains("users") ? "active" : "" %>">Users</a>
+        <li class="nav-item">
+            <a href="users" class="nav-link <%= request.getRequestURI().contains("users") ? "active" : "" %>">
+                <i class="fas fa-users"></i> Users
+            </a>
         </li>
-        <li>
-            <a href="tasks" class="<%= request.getRequestURI().contains("tasks") ? "active" : "" %>">Tasks</a>
+        <li class="nav-item">
+            <a href="tasks" class="nav-link <%= request.getRequestURI().contains("tasks") ? "active" : "" %>">
+                <i class="fas fa-tasks"></i> Tasks
+            </a>
         </li>
-        <li>
-            <a href="tags" class="<%= request.getRequestURI().contains("tags") ? "active" : "" %>">Tags</a>
+        <li class="nav-item">
+            <a href="tags" class="nav-link <%= request.getRequestURI().contains("tags") ? "active" : "" %>">
+                <i class="fas fa-tags"></i> Tags
+            </a>
         </li>
         <% } else if (currentUser.getRole() != null && Role.DEVELOPER.equals(currentUser.getRole())) { %>
-        <li>
-            <a href="devDash" class="<%= request.getRequestURI().contains("devDash") ? "active" : "" %>">Dev Dashboard</a>
+        <li class="nav-item">
+            <a href="devDash" class="nav-link <%= request.getRequestURI().contains("devDash") ? "active" : "" %>">
+                <i class="fas fa-laptop-code"></i> Dev Dashboard
+            </a>
         </li>
         <% } %>
-        <li>
-            <a href="logout" class="<%= request.getRequestURI().contains("logout") ? "active" : "" %>">Logout</a>
+        <li class="nav-item">
+            <a href="logout" class="nav-link <%= request.getRequestURI().contains("logout") ? "active" : "" %>">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
         </li>
     </ul>
 </div>
 
-<style>
-    .sidebar {
-        width: 200px;
-        height: 100vh;
-        position: fixed;
-        top: 0;
-        left: 0;
-        padding: 20px;
-    }
+<!-- Include Font Awesome for icons -->
 
-    .manager {
-        background-color: #333;
-    }
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" crossorigin="anonymous">
 
-    .developer {
-        background-color: #2c3e50; /* Different color for developers */
-    }
-
-    .sidebar ul {
-        list-style-type: none;
-        padding: 0;
-    }
-
-    .sidebar li {
-        margin: 10px 0;
-    }
-
-    .sidebar a {
-        padding: 15px;
-        text-decoration: none;
-        font-size: 18px;
-        color: #f8f9fa;
-        display: block;
-    }
-
-    .sidebar a:hover {
-        background-color: #495057;
-    }
-
-    .sidebar a.active {
-        background-color: #007BFF;
-        color: white;
-    }
-</style>
 

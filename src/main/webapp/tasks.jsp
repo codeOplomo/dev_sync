@@ -18,86 +18,23 @@
 <%@ page import="org.example.devsync4.entities.Tag" %>
 <%@ page import="java.util.stream.Collectors" %>
 <%@ page import="com.google.gson.Gson" %>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Dashboard - Manage Users</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
             margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: row;
             overflow: hidden;
         }
-
         .content {
-            margin-left: 260px;
             padding: 20px;
-            width: calc(100% - 260px);
         }
-
-        .container {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 1000px;
-            width: 100%;
-            text-align: center;
-            margin: auto;
-        }
-
-        .menu-option {
-            background-color: #007BFF;
-            color: white;
-            padding: 10px;
-            margin: 10px 0;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            font-size: 16px;
-        }
-
-        .menu-option:hover {
-            background-color: #0056b3;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #007BFF;
-            color: white;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-
-        .action-buttons button {
-            padding: 8px 12px;
-            margin-right: 10px;
-            cursor: pointer;
-            border: none;
-            border-radius: 4px;
-        }
-
-        /* Modal Styling */
         .modal {
             position: fixed;
             z-index: 1000;
@@ -108,32 +45,15 @@
             background-color: rgba(255, 255, 255, 1);
             transition: right 0.8s ease;
         }
-
         .modal.show {
             right: 0;
         }
-
         .modal-content {
             padding: 20px;
             border-radius: 8px;
             height: 100%;
             overflow: auto;
         }
-
-        /* Badges Styling */
-        .tags-container {
-            margin-top: 10px;
-        }
-
-        .tag-badge:hover {
-            background-color: #0056b3;
-        }
-
-        tr:hover {
-            background-color: #f1f1f1;
-            cursor: pointer;
-        }
-
         .tag-badge {
             background-color: #f0f0f0;
             padding: 5px 10px;
@@ -141,31 +61,24 @@
             margin-right: 5px;
             display: inline-block;
         }
-
-        #modalAssignedTo {
-            display: inline; /* Default display for the text */
-        }
-
-        #developerDropdown {
-            display: none; /* Hidden by default */
-            width: 50%; /* Set to 50% or any percentage you want */
-            padding: 5px;
-            font-size: 16px; /* Match the text's font size */
-            margin: 0;
-        }
     </style>
 </head>
 <body>
-<%@ include file="layout/sidebar.jsp" %>
+<div class="d-flex">
+    <%-- Sidebar --%>
+    <div id="sidebar" style="width: 250px; height: 100vh;">
+        <%@ include file="layout/sidebar.jsp" %>
+    </div>
+
 <!-- Content -->
-<div class="content">
-    <div class="container">
-        <h2>Manage Tasks</h2>
-        <a href="taskForms" class="menu-option">Add Task</a>
+<div class="content flex-grow-1 p-4" style="overflow-x: auto;">
+    <div class="container bg-white p-4 rounded shadow">
+        <h2 class="text-center">Manage Tasks</h2>
+        <a href="taskForms" class="btn btn-primary mb-3">Add Task</a>
 
         <!-- Task Table -->
-        <table border="1" cellpadding="10" cellspacing="0" style="width:100%; margin-top: 20px; border-collapse: collapse;">
-            <thead>
+        <table class="table table-bordered table-striped">
+            <thead class="thead-light">
             <tr>
                 <th>Title</th>
                 <th>Status</th>
@@ -195,7 +108,7 @@
             } else {
             %>
             <tr>
-                <td colspan="6" style="text-align:center;">No tasks available</td>
+                <td colspan="6" class="text-center">No tasks available</td>
             </tr>
             <%
                 }
@@ -219,18 +132,17 @@
             </select>
         </p>
         <p><strong>Created By:</strong> <span id="modalCreatedBy"></span></p>
-        <p><strong>Start Date:</strong> <span id="modalStartDate"></span></p> <!-- New start date display -->
-        <p><strong>End Date:</strong> <span id="modalEndDate"></span></p> <!-- New end date display -->
+        <p><strong>Start Date:</strong> <span id="modalStartDate"></span></p>
+        <p><strong>End Date:</strong> <span id="modalEndDate"></span></p>
         <p><strong>Tags:</strong> <div id="modalTags" class="tags-container"></div></p>
 
         <!-- Placeholder for Update/Cancel buttons -->
         <div id="modalButtons" style="display:none; margin-top: 20px; text-align: right;">
-            <button id="updateButton" onclick="updateAssignedTo()">Update</button>
-            <button id="cancelButton" onclick="cancelUpdate()">Cancel</button>
+            <button id="updateButton" class="btn btn-success" onclick="updateAssignedTo()">Update</button>
+            <button id="cancelButton" class="btn btn-secondary" onclick="cancelUpdate()">Cancel</button>
         </div>
     </div>
 </div>
-
 
 <script>
     var currentTaskId;
@@ -241,9 +153,7 @@
         var dropdown = document.getElementById('developerDropdown');
         var modalButtons = document.getElementById('modalButtons');
 
-        // Check if the click was outside the "Assigned To" section and the buttons are not visible
         if (dropdown.style.display === 'inline-block' && !assignedToText.contains(event.target) && !dropdown.contains(event.target)) {
-            // Check if the buttons are not displayed
             if (modalButtons.style.display === 'none') {
                 cancelUpdate();
             }
@@ -254,20 +164,17 @@
         console.log("Modal triggered for:", title);
 
         currentTaskId = id;
-        // Populate modal with task info
         document.getElementById('modalTitle').innerText = title;
         document.getElementById('modalDescription').innerText = description;
         document.getElementById('modalStatus').innerText = status;
         document.getElementById('modalAssignedTo').innerText = assignedTo;
         document.getElementById('modalCreatedBy').innerText = createdBy;
-        document.getElementById('modalStartDate').innerText = startDate; // Set start date in modal
-        document.getElementById('modalEndDate').innerText = endDate; // Set end date in modal
+        document.getElementById('modalStartDate').innerText = startDate;
+        document.getElementById('modalEndDate').innerText = endDate;
 
-        // Clear the current tags
         var tagsContainer = document.getElementById('modalTags');
         tagsContainer.innerHTML = '';
 
-        // Split tags by commas and create badges for each tag
         var tagsArray = tags.split(',');
         tagsArray.forEach(function(tag) {
             var badge = document.createElement('span');
@@ -276,18 +183,15 @@
             tagsContainer.appendChild(badge);
         });
 
-        // Fetch the developers list from the server-side code
         var developers = <%= new Gson().toJson((List<User>) request.getAttribute("developers")) %>;
         var dropdown = document.getElementById('developerDropdown');
-        dropdown.innerHTML = ''; // Clear the dropdown
+        dropdown.innerHTML = '';
 
-        // Populate the dropdown and preselect the current assigned developer
         developers.forEach(function(developer) {
             var option = document.createElement('option');
             option.value = developer.id;
             option.text = developer.name;
 
-            // Check if this developer is the current assignedTo, and preselect it
             if (developer.name === assignedTo) {
                 option.selected = true;
             }
@@ -295,14 +199,10 @@
             dropdown.appendChild(option);
         });
 
-        // Set the assignedTo field text
         document.getElementById('modalAssignedTo').innerText = assignedTo;
 
-        // Slide-in the modal smoothly
         var modal = document.getElementById('taskModal');
         modal.style.display = 'block';
-
-        // Force a reflow to ensure the transition works
         setTimeout(function() {
             modal.classList.add('show');
         }, 10);
@@ -312,7 +212,6 @@
         console.log("Modal closed.");
         var modal = document.getElementById('taskModal');
         modal.classList.remove('show');
-
         setTimeout(function() {
             modal.style.display = 'none';
         }, 300);
@@ -321,59 +220,44 @@
     function enableDropdown() {
         var assignedTo = document.getElementById('modalAssignedTo');
         var dropdown = document.getElementById('developerDropdown');
-
-        dropdown.style.width = '50%';
-
         assignedTo.style.display = 'none';
         dropdown.style.display = 'inline-block';
     }
 
     function showUpdateCancelButtons() {
-        // Show the Update/Cancel buttons
         document.getElementById('modalButtons').style.display = 'block';
     }
 
     function cancelUpdate() {
-        // Reset the dropdown to the originally assigned developer
-        var assignedToText = document.getElementById('modalAssignedTo').innerText;
+        var assignedToText = document.getElementById('modalAssignedTo');
         var dropdown = document.getElementById('developerDropdown');
-
-        for (var i = 0; i < dropdown.options.length; i++) {
-            if (dropdown.options[i].text === assignedToText) {
-                dropdown.selectedIndex = i;
-                break;
-            }
-        }
-
-        // Hide the Update/Cancel buttons
-        document.getElementById('modalButtons').style.display = 'none';
-
-        // Hide the dropdown and show the assignedTo text
+        assignedToText.style.display = 'inline-block';
         dropdown.style.display = 'none';
-        document.getElementById('modalAssignedTo').style.display = 'inline';
+        document.getElementById('modalButtons').style.display = 'none';
     }
 
     function updateAssignedTo() {
+        console.log("Updating assigned to:", currentTaskId);
+
         var dropdown = document.getElementById('developerDropdown');
-        var selectedDeveloperId = dropdown.value;
+        var assignedToId = dropdown.value;
 
-        // Send AJAX request to update the task
+        // Send an AJAX request to update the assigned user
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", "/updateAssignedDeveloper", true);
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                document.getElementById('modalAssignedTo').innerText = dropdown.options[dropdown.selectedIndex].text; // Update the field
-                document.getElementById('modalAssignedTo').style.display = 'inline'; // Show the field
-                dropdown.style.display = 'none'; // Hide the dropdown
-
-                // Hide the Update/Cancel buttons
-                document.getElementById('modalButtons').style.display = 'none';
+        xhr.open("POST", "updateAssignedTo?id=" + currentTaskId + "&assignedTo=" + assignedToId, true);
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                console.log("Update successful:", xhr.responseText);
+                // Update UI accordingly
+                closeTaskModal();
+                location.reload(); // Reload to reflect changes
+            } else {
+                console.error("Error updating:", xhr.responseText);
             }
         };
-        xhr.send("taskId=" + currentTaskId + "&developerId=" + selectedDeveloperId);
+        xhr.send();
     }
-
 </script>
 </body>
 </html>
+
