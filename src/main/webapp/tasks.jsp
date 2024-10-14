@@ -21,10 +21,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - Manage Users</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Manage Tasks</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -32,52 +31,91 @@
             margin: 0;
             overflow: hidden;
         }
+
         .content {
             padding: 20px;
         }
-        .modal {
-            position: fixed;
-            z-index: 1000;
-            right: -100px; /* Start outside the viewport */
-            top: 0;
-            width: 400px;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 1);
-            transition: right 0.8s ease; /* Transition for the right property */
-            box-shadow: -2px 0 5px rgba(0,0,0,0.2); /* Add some shadow for better visibility */
-        }
-        .modal.show {
-            right: 0; /* When shown, the modal slides in to the viewport */
-        }
-        .modal-content {
+
+        .container {
+            background-color: #fff;
             padding: 20px;
             border-radius: 8px;
-            height: 100%;
-            overflow: auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 1000px;
+            width: 100%;
+            text-align: center;
+            margin: auto;
         }
-        .tag-badge {
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Keep this to control visibility */
+            position: fixed;
+            top: 0;
+            right: -100%; /* Start hidden off the right side */
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            transition: right 0.3s ease; /* Transition for sliding effect */
+        }
+
+        .modal.show {
+            display: block; /* Show the modal */
+            right: 0; /* Slide into view */
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 60%;
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            right: 20px;
+            top: 10px;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        /* Clickable row styling */
+        tr.clickable-row {
+            cursor: pointer;
+        }
+
+        tr.clickable-row:hover {
             background-color: #f0f0f0;
-            padding: 5px 10px;
+        }
+
+        .tags-container span {
+            background-color: #17a2b8;
+            color: white;
+            padding: 5px;
             border-radius: 4px;
             margin-right: 5px;
-            display: inline-block;
         }
     </style>
 </head>
-<body>
-<div class="d-flex">
-    <%-- Sidebar --%>
-    <div id="sidebar" style="width: 250px; height: 100vh;">
-        <%@ include file="layout/sidebar.jsp" %>
-    </div>
+<body class="d-flex">
+<div id="sidebar" style="width: 250px; height: 100vh;">
+    <%@ include file="layout/sidebar.jsp" %>
+</div>
 
-<!-- Content -->
 <div class="content flex-grow-1 p-4" style="overflow-x: auto;">
     <div class="container bg-white p-4 rounded shadow">
         <h2 class="text-center">Manage Tasks</h2>
         <a href="taskForms" class="btn btn-primary mb-3">Add Task</a>
 
-        <!-- Task Table -->
         <table class="table table-bordered table-striped">
             <thead class="thead-light">
             <tr>
@@ -87,6 +125,7 @@
                 <th>Created By</th>
                 <th>Start Date</th>
                 <th>End Date</th>
+                <th>Actions</th> <!-- New Actions Column -->
             </tr>
             </thead>
             <tbody>
@@ -96,169 +135,196 @@
                     for (Task task : tasks) {
                         String tags = task.getTags().stream().map(Tag::getName).collect(Collectors.joining(", "));
             %>
-            <tr onclick="showTaskModal('<%= task.getId() %>', '<%= task.getTitle() %>', '<%= task.getDescription() %>', '<%= task.getStatus().name() %>', '<%= task.getAssignedTo() != null ? task.getAssignedTo().getName() : "Unassigned" %>', '<%= task.getCreatedBy().getName() %>', '<%= task.getStartDate() != null ? task.getStartDate().toString() : "Not set" %>', '<%= task.getEndDate() != null ? task.getEndDate().toString() : "Not set" %>', '<%= tags %>')" stopPropagation>
+            <tr>
                 <td><%= task.getTitle() %></td>
                 <td><%= task.getStatus().name() %></td>
                 <td><%= task.getAssignedTo() != null ? task.getAssignedTo().getName() : "Unassigned" %></td>
                 <td><%= task.getCreatedBy().getName() %></td>
                 <td><%= task.getStartDate() != null ? task.getStartDate().toString() : "Not set" %></td>
                 <td><%= task.getEndDate() != null ? task.getEndDate().toString() : "Not set" %></td>
+                <td>
+                    <button class="btn btn-info btn-sm" onclick="showTaskDetailsModal('<%= task.getTitle().replace("\"", "&quot;") %>',
+                            '<%= task.getDescription().replace("\"", "&quot;") %>',
+                            '<%= task.getStatus().name() %>',
+                            '<%= task.getAssignedTo() != null ? task.getAssignedTo().getName().replace("\"", "&quot;") : "Unassigned" %>',
+                            '<%= task.getCreatedBy().getName().replace("\"", "&quot;") %>',
+                            '<%= task.getStartDate() != null ? task.getStartDate().toString() : "Not set" %>',
+                            '<%= task.getEndDate() != null ? task.getEndDate().toString() : "Not set" %>',
+                            '<%= tags.replace("\"", "&quot;") %>'
+                            )">Details</button>
+                    <button class="btn btn-warning btn-sm" onclick="editTask('<%= task.getTitle().replace("\"", "&quot;") %>',
+                            '<%= task.getDescription().replace("\"", "&quot;") %>',
+                            '<%= task.getStatus().name() %>',
+                            '<%= task.getAssignedTo() != null ? task.getAssignedTo().getName().replace("\"", "&quot;") : "Unassigned" %>',
+                            '<%= task.getCreatedBy().getName().replace("\"", "&quot;") %>',
+                            '<%= task.getStartDate() != null ? task.getStartDate().toString() : "Not set" %>',
+                            '<%= task.getEndDate() != null ? task.getEndDate().toString() : "Not set" %>',
+                            '<%= tags.replace("\"", "&quot;") %>'
+                            )">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="confirmDelete(<%= task.getId() %>)">Delete</button>
+                </td>
             </tr>
             <%
                 }
             } else {
             %>
             <tr>
-                <td colspan="6" class="text-center">No tasks available</td>
+                <td colspan="7" class="text-center">No tasks available</td>
             </tr>
             <%
                 }
             %>
             </tbody>
         </table>
+
     </div>
 </div>
 
-<!-- Modal -->
+<!-- Task Details Modal -->
+<div id="taskDetailsModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeTaskDetailsModal()">&times;</span>
+        <h2 id="detailsModalTitle">Task Details</h2>
+        <p><strong>Description:</strong> <span id="detailsModalDescription"></span></p>
+        <p><strong>Status:</strong> <span id="detailsModalStatus"></span></p>
+        <p><strong>Assigned To:</strong> <span id="detailsModalAssignedTo"></span></p>
+        <p><strong>Created By:</strong> <span id="detailsModalCreatedBy"></span></p>
+        <p><strong>Start Date:</strong> <span id="detailsModalStartDate"></span></p>
+        <p><strong>End Date:</strong> <span id="detailsModalEndDate"></span></p>
+        <p><strong>Tags:</strong> <span id="detailsModalTags"></span></p>
+        <button class="btn btn-secondary" onclick="closeTaskDetailsModal()">Close</button>
+    </div>
+</div>
+
+<!-- Task Update Modal -->
 <div id="taskModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeTaskModal()">&times;</span>
-        <h2 id="modalTitle">Task Title</h2>
-        <p><strong>Description:</strong> <span id="modalDescription"></span></p>
-        <p><strong>Status:</strong> <span id="modalStatus"></span></p>
-        <p><strong>Assigned To:</strong>
-            <span id="modalAssignedTo" onclick="enableDropdown()">Unassigned</span>
-            <select id="developerDropdown" style="display:none;" onchange="showUpdateCancelButtons()">
-                <!-- Developers will be populated dynamically -->
-            </select>
-        </p>
+        <h2 id="modalTitle">Edit Task</h2>
+        <input type="text" id="modalEditTitle" placeholder="Title" />
+        <textarea id="modalEditDescription" placeholder="Description"></textarea>
+        <select id="modalEditStatus">
+            <option value="PENDING">Pending</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="COMPLETED">Completed</option>
+        </select>
+        <p><strong>Assigned To:</strong> <span id="modalAssignedTo"></span></p>
         <p><strong>Created By:</strong> <span id="modalCreatedBy"></span></p>
         <p><strong>Start Date:</strong> <span id="modalStartDate"></span></p>
         <p><strong>End Date:</strong> <span id="modalEndDate"></span></p>
-        <p><strong>Tags:</strong> <div id="modalTags" class="tags-container"></div></p>
+        <p><strong>Tags:</strong> <span id="modalTags" class="tags-container"></span></p>
+        <button id="saveTaskBtn" class="btn btn-primary" onclick="saveTask()">Save</button>
+    </div>
+</div>
 
-        <!-- Placeholder for Update/Cancel buttons -->
-        <div id="modalButtons" style="display:none; margin-top: 20px; text-align: right;">
-            <button id="updateButton" class="btn btn-success" onclick="updateAssignedTo()">Update</button>
-            <button id="cancelButton" class="btn btn-secondary" onclick="cancelUpdate()">Cancel</button>
-        </div>
+<!-- Confirmation Delete Modal -->
+<div id="confirmDeleteModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeDeleteModal()">&times;</span>
+        <h2>Confirm Deletion</h2>
+        <p>Are you sure you want to delete this task?</p>
+        <button id="confirmDeleteBtn" class="btn btn-danger">Delete</button>
+        <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
     </div>
 </div>
 
 <script>
-    var currentTaskId;
 
-    document.addEventListener('click', function(event) {
-        var modal = document.getElementById('taskModal');
-        var assignedToText = document.getElementById('modalAssignedTo');
-        var dropdown = document.getElementById('developerDropdown');
-        var modalButtons = document.getElementById('modalButtons');
+    let deleteTaskId = null; // Store task ID for deletion
 
-        if (dropdown.style.display === 'inline-block' && !assignedToText.contains(event.target) && !dropdown.contains(event.target)) {
-            if (modalButtons.style.display === 'none') {
-                cancelUpdate();
-            }
-        }
-    });
+    function showTaskDetailsModal(title, description, status, assignedTo, createdBy, startDate, endDate, tags) {
+        document.getElementById('detailsModalTitle').textContent = title;
+        document.getElementById('detailsModalDescription').textContent = description;
+        document.getElementById('detailsModalStatus').textContent = status;
+        document.getElementById('detailsModalAssignedTo').textContent = assignedTo;
+        document.getElementById('detailsModalCreatedBy').textContent = createdBy;
+        document.getElementById('detailsModalStartDate').textContent = startDate;
+        document.getElementById('detailsModalEndDate').textContent = endDate;
+        document.getElementById('detailsModalTags').textContent = tags;
 
-    function showTaskModal(id, title, description, status, assignedTo, createdBy, startDate, endDate, tags) {
-        console.log("Modal triggered for:", title);
-
-        currentTaskId = id;
-        document.getElementById('modalTitle').innerText = title;
-        document.getElementById('modalDescription').innerText = description;
-        document.getElementById('modalStatus').innerText = status;
-        document.getElementById('modalAssignedTo').innerText = assignedTo;
-        document.getElementById('modalCreatedBy').innerText = createdBy;
-        document.getElementById('modalStartDate').innerText = startDate;
-        document.getElementById('modalEndDate').innerText = endDate;
-
-        var tagsContainer = document.getElementById('modalTags');
-        tagsContainer.innerHTML = '';
-
-        var tagsArray = tags.split(',');
-        tagsArray.forEach(function(tag) {
-            var badge = document.createElement('span');
-            badge.classList.add('tag-badge');
-            badge.innerText = tag.trim();
-            tagsContainer.appendChild(badge);
-        });
-
-        var developers = <%= new Gson().toJson((List<User>) request.getAttribute("developers")) %>;
-        var dropdown = document.getElementById('developerDropdown');
-        dropdown.innerHTML = '';
-
-        developers.forEach(function(developer) {
-            var option = document.createElement('option');
-            option.value = developer.id;
-            option.text = developer.name;
-
-            if (developer.name === assignedTo) {
-                option.selected = true;
-            }
-
-            dropdown.appendChild(option);
-        });
-
-        document.getElementById('modalAssignedTo').innerText = assignedTo;
-
-        var modal = document.getElementById('taskModal');
+        // Show the modal
+        const modal = document.getElementById('taskDetailsModal');
         modal.style.display = 'block';
-        setTimeout(function() {
-            modal.classList.add('show');
-        }, 10);
+    }
+
+    // Close the task details modal
+    function closeTaskDetailsModal() {
+        document.getElementById('taskDetailsModal').style.display = 'none';
+    }
+
+    function showTaskModal(taskId, title, description, status, assignedTo, createdBy, startDate, endDate, tags) {
+        // Set the modal title and input field values for editing
+        document.getElementById('modalTitle').textContent = "Edit Task";
+        document.getElementById('modalEditTitle').value = title;
+        document.getElementById('modalEditDescription').value = description;
+        document.getElementById('modalEditStatus').value = status;
+
+        // Static values
+        document.getElementById('modalAssignedTo').textContent = assignedTo;
+        document.getElementById('modalCreatedBy').textContent = createdBy;
+        document.getElementById('modalStartDate').textContent = startDate;
+        document.getElementById('modalEndDate').textContent = endDate;
+
+        // Handle the case where tags might be undefined or empty
+        const tagContainer = document.getElementById('modalTags');
+        tagContainer.innerHTML = '';
+
+        // Check if tags are defined and not empty, then split
+        if (tags && tags.trim() !== '') {
+            tags.split(', ').forEach(tag => {
+                const tagSpan = document.createElement('span');
+                tagSpan.textContent = tag;
+                tagContainer.appendChild(tagSpan);
+            });
+        } else {
+            // Handle case when there are no tags
+            const noTagsSpan = document.createElement('span');
+            noTagsSpan.textContent = 'No tags';
+            tagContainer.appendChild(noTagsSpan);
+        }
+
+        // Show the modal
+        const modal = document.getElementById('taskModal');
+        modal.style.display = 'block';
     }
 
     function closeTaskModal() {
-        console.log("Modal closed.");
-        var modal = document.getElementById('taskModal');
-        modal.classList.remove('show');
-        setTimeout(function() {
-            modal.style.display = 'none';
-        }, 300);
+        document.getElementById('taskModal').style.display = 'none'; // Hide the edit modal
     }
 
-    function enableDropdown() {
-        var assignedTo = document.getElementById('modalAssignedTo');
-        var dropdown = document.getElementById('developerDropdown');
-        assignedTo.style.display = 'none';
-        dropdown.style.display = 'inline-block';
+    function confirmDelete(taskId) {
+        // Set the ID of the task to delete and show the delete confirmation modal
+        deleteTaskId = taskId;
+        const modal = document.getElementById('confirmDeleteModal');
+        modal.style.display = 'block';
     }
 
-    function showUpdateCancelButtons() {
-        document.getElementById('modalButtons').style.display = 'block';
+    function closeDeleteModal() {
+        document.getElementById('confirmDeleteModal').style.display = 'none'; // Hide the delete confirmation modal
     }
 
-    function cancelUpdate() {
-        var assignedToText = document.getElementById('modalAssignedTo');
-        var dropdown = document.getElementById('developerDropdown');
-        assignedToText.style.display = 'inline-block';
-        dropdown.style.display = 'none';
-        document.getElementById('modalButtons').style.display = 'none';
+    function editTask(taskId, title, description, status, assignedTo, createdBy, startDate, endDate, tags) {
+        console.log('Edit button clicked for task: ', title); // Check if this logs correctly
+        showTaskModal(taskId, title, description, status, assignedTo, createdBy, startDate, endDate, tags);
     }
 
-    function updateAssignedTo() {
-        console.log("Updating assigned to:", currentTaskId);
 
-        var dropdown = document.getElementById('developerDropdown');
-        var assignedToId = dropdown.value;
+    // Close modals when the user clicks outside of them
+    window.onclick = function (event) {
+        const detailsModal = document.getElementById('taskDetailsModal');
+        const editModal = document.getElementById('taskModal');
+        const deleteModal = document.getElementById('confirmDeleteModal');
 
-        // Send an AJAX request to update the assigned user
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", "updateAssignedTo?id=" + currentTaskId + "&assignedTo=" + assignedToId, true);
-        xhr.onload = function() {
-            if (xhr.status === 200) {
-                console.log("Update successful:", xhr.responseText);
-                // Update UI accordingly
-                closeTaskModal();
-                location.reload(); // Reload to reflect changes
-            } else {
-                console.error("Error updating:", xhr.responseText);
-            }
-        };
-        xhr.send();
-    }
+        if (event.target === detailsModal) closeTaskDetailsModal();
+        if (event.target === editModal) closeTaskModal();
+        if (event.target === deleteModal) closeDeleteModal();
+    };
+
 </script>
 </body>
+
+
+
+
 </html>
 
