@@ -28,11 +28,7 @@ public class TagService {
         return tagRepository.findAll();
     }
 
-    public List<Tag> findByIds(String[] ids) {
-        List<Long> tagIds = Arrays.stream(ids)
-                .map(Long::parseLong)
-                .collect(Collectors.toList());
-
-        return tagRepository.findByIds(tagIds);
+    public List<Tag> findByIds(List<Long> ids) {
+        return tagRepository.findByIds(ids);
     }
 }

@@ -17,6 +17,7 @@ import org.example.devsync4.services.UserService;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 @WebServlet(name = "taskForms", value = "/taskForms")
@@ -44,7 +45,21 @@ public class TaskFormsServlet extends HttpServlet {
 
         User currentUser = (User) request.getSession().getAttribute("user");
 
-        String[] selectedTagIds = request.getParameterValues("tags");
+        // Retrieve the selected tag IDs from the request
+        String selectedTagIdsParam = request.getParameter("selectedTagIds");
+        Long[] selectedTagIds = null;
+
+        // Check if the selectedTagIdsParam is not null or empty
+        if (selectedTagIdsParam != null && !selectedTagIdsParam.isEmpty()) {
+            // Split the string into an array of strings
+            String[] selectedTagIdsStr = selectedTagIdsParam.split(",");
+
+            // Convert the string array to a Long array
+            selectedTagIds = new Long[selectedTagIdsStr.length];
+            for (int i = 0; i < selectedTagIdsStr.length; i++) {
+                selectedTagIds[i] = Long.parseLong(selectedTagIdsStr[i].trim()); // Convert each string to Long
+            }
+        }
 
         if ("update".equals(action) && id != null) {
             Task task = taskService.findById(Long.parseLong(id));
@@ -70,7 +85,9 @@ public class TaskFormsServlet extends HttpServlet {
             }
 
             if (selectedTagIds != null) {
-                List<Tag> tags = tagService.findByIds(selectedTagIds);
+                List<Long> selectedTagIdsList = Arrays.asList(selectedTagIds);
+                List<Tag> tags = tagService.findByIds(selectedTagIdsList);
+                task.getTags().clear();
                 task.setTags(tags);
             }
 
@@ -130,7 +147,9 @@ public class TaskFormsServlet extends HttpServlet {
             task.setCreatedAt(LocalDateTime.now());
 
             if (selectedTagIds != null) {
-                List<Tag> tags = tagService.findByIds(selectedTagIds);
+
+                List<Long> selectedTagIdsList = Arrays.asList(selectedTagIds);
+                List<Tag> tags = tagService.findByIds(selectedTagIdsList);
                 task.setTags(tags);
             }
 

@@ -24,6 +24,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Manage Tasks</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -47,63 +50,34 @@
             margin: auto;
         }
 
-        /* Modal Styles */
-        .modal {
-            display: none; /* Keep this to control visibility */
-            position: fixed;
-            top: 0;
-            right: -100%; /* Start hidden off the right side */
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            transition: right 0.3s ease; /* Transition for sliding effect */
+
+        .text-wrap {
+            word-wrap: break-word; /* Allows long words to break */
+            word-break: break-word; /* Forces the word to break at the container edge */
+            white-space: normal;    /* Ensures the text wraps normally */
         }
 
-        .modal.show {
-            display: block; /* Show the modal */
-            right: 0; /* Slide into view */
-        }
-
-        .modal-content {
-            background-color: #fff;
-            margin: 10% auto;
-            padding: 20px;
-            border-radius: 8px;
-            width: 60%;
-            position: relative;
-        }
-
-        .close {
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-            position: absolute;
-            right: 20px;
-            top: 10px;
-            cursor: pointer;
-        }
-
-        .close:hover {
-            color: black;
-        }
-
-        /* Clickable row styling */
-        tr.clickable-row {
-            cursor: pointer;
-        }
-
-        tr.clickable-row:hover {
+        .tag-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 3px;
+            border-radius: 12px;
             background-color: #f0f0f0;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            color: #000000;
         }
 
-        .tags-container span {
+        .tag-badge.selected {
             background-color: #17a2b8;
             color: white;
-            padding: 5px;
-            border-radius: 4px;
             margin-right: 5px;
+            display: inline-block;
+            cursor: pointer;
+            border: 1px solid #ccc;
         }
+
+
     </style>
 </head>
 <body class="d-flex">
@@ -122,7 +96,6 @@
                 <th>Title</th>
                 <th>Status</th>
                 <th>Assigned To</th>
-                <th>Created By</th>
                 <th>Start Date</th>
                 <th>End Date</th>
                 <th>Actions</th> <!-- New Actions Column -->
@@ -139,29 +112,27 @@
                 <td><%= task.getTitle() %></td>
                 <td><%= task.getStatus().name() %></td>
                 <td><%= task.getAssignedTo() != null ? task.getAssignedTo().getName() : "Unassigned" %></td>
-                <td><%= task.getCreatedBy().getName() %></td>
                 <td><%= task.getStartDate() != null ? task.getStartDate().toString() : "Not set" %></td>
                 <td><%= task.getEndDate() != null ? task.getEndDate().toString() : "Not set" %></td>
                 <td>
-                    <button class="btn btn-info btn-sm" onclick="showTaskDetailsModal('<%= task.getTitle().replace("\"", "&quot;") %>',
-                            '<%= task.getDescription().replace("\"", "&quot;") %>',
-                            '<%= task.getStatus().name() %>',
-                            '<%= task.getAssignedTo() != null ? task.getAssignedTo().getName().replace("\"", "&quot;") : "Unassigned" %>',
-                            '<%= task.getCreatedBy().getName().replace("\"", "&quot;") %>',
-                            '<%= task.getStartDate() != null ? task.getStartDate().toString() : "Not set" %>',
-                            '<%= task.getEndDate() != null ? task.getEndDate().toString() : "Not set" %>',
-                            '<%= tags.replace("\"", "&quot;") %>'
-                            )">Details</button>
-                    <button class="btn btn-warning btn-sm" onclick="editTask('<%= task.getTitle().replace("\"", "&quot;") %>',
-                            '<%= task.getDescription().replace("\"", "&quot;") %>',
-                            '<%= task.getStatus().name() %>',
-                            '<%= task.getAssignedTo() != null ? task.getAssignedTo().getName().replace("\"", "&quot;") : "Unassigned" %>',
-                            '<%= task.getCreatedBy().getName().replace("\"", "&quot;") %>',
-                            '<%= task.getStartDate() != null ? task.getStartDate().toString() : "Not set" %>',
-                            '<%= task.getEndDate() != null ? task.getEndDate().toString() : "Not set" %>',
-                            '<%= tags.replace("\"", "&quot;") %>'
-                            )">Edit</button>
-                    <button class="btn btn-danger btn-sm" onclick="confirmDelete(<%= task.getId() %>)">Delete</button>
+                    <button type="button" class="btn btn-sm btn-warning" title="Details"
+                            data-bs-toggle="modal" data-bs-target="#taskDetailsModal"
+                            onclick="taskDetailsModal('<%= task.getTitle() %>','<%= task.getDescription() %>', '<%= task.getStatus()%>',
+                                    '<%= (task.getAssignedTo() != null) ? task.getAssignedTo().getName() : "Unassigned" %>', '<%= task.getStartDate() %>',
+                                    '<%= task.getEndDate() %>', '<%= tags %>')">
+                        <i class="fa-solid fa-circle-info"></i>
+                    </button>
+
+                    <button type="button" class="btn btn-sm btn-warning" title="Update"
+                            data-bs-toggle="modal" data-bs-target="#taskModal"
+                            onclick="updateTaskModal('<%= task.getId() %>', '<%= task.getTitle() %>', '<%= task.getDescription() %>', '<%= task.getEndDate() %>', '<%= tags %>', '<%= (task.getAssignedTo() != null) ? task.getAssignedTo().getId() : "" %>')">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-danger" title="Delete"
+                            data-bs-toggle="modal" data-bs-target="#confirmDeleteModal"
+                            onclick="managerSetTaskToDelete('<%= task.getId() %>')">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
                 </td>
             </tr>
             <%
@@ -177,154 +148,261 @@
             </tbody>
         </table>
 
-    </div>
-</div>
-
-<!-- Task Details Modal -->
-<div id="taskDetailsModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeTaskDetailsModal()">&times;</span>
-        <h2 id="detailsModalTitle">Task Details</h2>
-        <p><strong>Description:</strong> <span id="detailsModalDescription"></span></p>
-        <p><strong>Status:</strong> <span id="detailsModalStatus"></span></p>
-        <p><strong>Assigned To:</strong> <span id="detailsModalAssignedTo"></span></p>
-        <p><strong>Created By:</strong> <span id="detailsModalCreatedBy"></span></p>
-        <p><strong>Start Date:</strong> <span id="detailsModalStartDate"></span></p>
-        <p><strong>End Date:</strong> <span id="detailsModalEndDate"></span></p>
-        <p><strong>Tags:</strong> <span id="detailsModalTags"></span></p>
-        <button class="btn btn-secondary" onclick="closeTaskDetailsModal()">Close</button>
+        <%
+            List<Tag> allTags = (List<Tag>) request.getAttribute("tagsList");
+        %>
     </div>
 </div>
 
 <!-- Task Update Modal -->
-<div id="taskModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeTaskModal()">&times;</span>
-        <h2 id="modalTitle">Edit Task</h2>
-        <input type="text" id="modalEditTitle" placeholder="Title" />
-        <textarea id="modalEditDescription" placeholder="Description"></textarea>
-        <select id="modalEditStatus">
-            <option value="PENDING">Pending</option>
-            <option value="IN_PROGRESS">In Progress</option>
-            <option value="COMPLETED">Completed</option>
-        </select>
-        <p><strong>Assigned To:</strong> <span id="modalAssignedTo"></span></p>
-        <p><strong>Created By:</strong> <span id="modalCreatedBy"></span></p>
-        <p><strong>Start Date:</strong> <span id="modalStartDate"></span></p>
-        <p><strong>End Date:</strong> <span id="modalEndDate"></span></p>
-        <p><strong>Tags:</strong> <span id="modalTags" class="tags-container"></span></p>
-        <button id="saveTaskBtn" class="btn btn-primary" onclick="saveTask()">Save</button>
+<div class="modal fade" id="taskModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="updateTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateTaskModalLabel">Update Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateTaskForm" action="taskForms" method="post">
+                    <input type="hidden" name="id" id="taskId">
+                    <input type="hidden" name="action" value="update" >
+                    <input type="hidden" name="selectedTagIds" id="selectedTagIds">
+
+                    <div class="mb-3">
+                        <label for="modalEditTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="modalEditTitle" name="title" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="modalEditDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="modalEditDescription" name="description" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalAssignedTo" class="form-label">Assigned To</label>
+                        <select class="form-select" id="modalAssignedTo" name="assignedTo" required>
+                            <option value="">Unassigned</option> <!-- Default "Unassigned" option -->
+                            <% List<User> users = (List<User>) request.getAttribute("developers");
+                                if (users != null) {
+                                    for (User user : users) { %>
+                            <option value="<%= user.getId() %>"><%= user.getName() %></option>
+                            <% } } %>
+                        </select>
+                    </div>
+
+
+                    <div class="mb-3">
+                        <label for="modalEndDate" class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="modalEndDate" name="endDate" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="modalTags" class="form-label">Tags</label>
+                        <div id="modalTags" class="tags-container"></div>
+                        <input type="hidden" name="selectedTags" id="selectedTags">
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Update Task</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
 <!-- Confirmation Delete Modal -->
-<div id="confirmDeleteModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeDeleteModal()">&times;</span>
-        <h2>Confirm Deletion</h2>
-        <p>Are you sure you want to delete this task?</p>
-        <button id="confirmDeleteBtn" class="btn btn-danger">Delete</button>
-        <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+<div class="modal fade" id="confirmDeleteModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="deleteTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteTaskModalLabel">Confirm Task Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this task?
+            </div>
+            <div class="modal-footer">
+                <form id="deleteTaskForm" action="taskForms" method="post">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="id" id="deleteTaskId">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
+<!-- Task Details Modal -->
+<div class="modal fade" id="taskDetailsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="taskDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="taskDetailsModalLabel">Task Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label"><strong>Title:</strong></label>
+                    <div id="detailTitle" class="text-wrap"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Description:</strong></label>
+                    <div id="detailDescription" class="text-wrap"></div>
+                </div>
+
+                <!-- Assigned To and Status side by side -->
+                <div class="row mb-3">
+                    <div class="col">
+                        <label class="form-label"><strong>Assigned To:</strong></label>
+                        <div id="detailAssignedTo" class="text-wrap"></div>
+                    </div>
+                    <div class="col">
+                        <label class="form-label"><strong>Status:</strong></label>
+                        <div id="detailStatus" class="text-wrap"></div>
+                    </div>
+                </div>
+
+                <!-- Start Date and End Date side by side -->
+                <div class="row mb-3">
+                    <div class="col">
+                        <label class="form-label"><strong>Start Date:</strong></label>
+                        <div id="detailStartDate" class="text-wrap"></div>
+                    </div>
+                    <div class="col">
+                        <label class="form-label"><strong>End Date:</strong></label>
+                        <div id="detailEndDate" class="text-wrap"></div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Tags:</strong></label>
+                    <div id="detailTags" class="tags-container text-wrap"></div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <script>
+    const allTags = [
+        <%
+            for (int i = 0; i < allTags.size(); i++) {
+                Tag tag = allTags.get(i); // Assuming Tag has getId() and getName()
+        %>
+        { "id": <%= tag.getId() %>, "name": "<%= tag.getName() %>" }<% if (i < allTags.size() - 1) { %>, <% } %>
+        <%
+            }
+        %>
+    ];
 
-    let deleteTaskId = null; // Store task ID for deletion
 
-    function showTaskDetailsModal(title, description, status, assignedTo, createdBy, startDate, endDate, tags) {
-        document.getElementById('detailsModalTitle').textContent = title;
-        document.getElementById('detailsModalDescription').textContent = description;
-        document.getElementById('detailsModalStatus').textContent = status;
-        document.getElementById('detailsModalAssignedTo').textContent = assignedTo;
-        document.getElementById('detailsModalCreatedBy').textContent = createdBy;
-        document.getElementById('detailsModalStartDate').textContent = startDate;
-        document.getElementById('detailsModalEndDate').textContent = endDate;
-        document.getElementById('detailsModalTags').textContent = tags;
-
-        // Show the modal
-        const modal = document.getElementById('taskDetailsModal');
-        modal.style.display = 'block';
-    }
-
-    // Close the task details modal
-    function closeTaskDetailsModal() {
-        document.getElementById('taskDetailsModal').style.display = 'none';
-    }
-
-    function showTaskModal(taskId, title, description, status, assignedTo, createdBy, startDate, endDate, tags) {
-        // Set the modal title and input field values for editing
-        document.getElementById('modalTitle').textContent = "Edit Task";
+    function updateTaskModal(id, title, description, endDate, taskTags, assignedToId) {
+        // Set task details in the modal
+        document.getElementById('taskId').value = id;
         document.getElementById('modalEditTitle').value = title;
         document.getElementById('modalEditDescription').value = description;
-        document.getElementById('modalEditStatus').value = status;
+        document.getElementById('modalEndDate').value = endDate;
 
-        // Static values
-        document.getElementById('modalAssignedTo').textContent = assignedTo;
-        document.getElementById('modalCreatedBy').textContent = createdBy;
-        document.getElementById('modalStartDate').textContent = startDate;
-        document.getElementById('modalEndDate').textContent = endDate;
-
-        // Handle the case where tags might be undefined or empty
-        const tagContainer = document.getElementById('modalTags');
-        tagContainer.innerHTML = '';
-
-        // Check if tags are defined and not empty, then split
-        if (tags && tags.trim() !== '') {
-            tags.split(', ').forEach(tag => {
-                const tagSpan = document.createElement('span');
-                tagSpan.textContent = tag;
-                tagContainer.appendChild(tagSpan);
-            });
-        } else {
-            // Handle case when there are no tags
-            const noTagsSpan = document.createElement('span');
-            noTagsSpan.textContent = 'No tags';
-            tagContainer.appendChild(noTagsSpan);
+        // Assign the selected developer
+        const assignedToSelect = document.getElementById('modalAssignedTo');
+        if (assignedToId) {
+            for (let option of assignedToSelect.options) {
+                if (option.value === assignedToId) {
+                    option.selected = true;
+                    break;
+                }
+            }
         }
 
-        // Show the modal
-        const modal = document.getElementById('taskModal');
-        modal.style.display = 'block';
+        // Prepare the tags section
+        const tagsContainer = document.getElementById('modalTags');
+        tagsContainer.innerHTML = ''; // Clear previous content
+
+        // Split the associated tags for the task
+        const selectedTags = taskTags.split(',').map(tag => tag.trim());
+        const selectedTagIds = selectedTags.map(tag => {
+            const foundTag = allTags.find(t => t.name === tag);
+            return foundTag ? foundTag.id : null;
+        }).filter(id => id !== null); // Filter out nulls if any tag was not found
+
+        // Loop through all tags and create badges
+        allTags.forEach(function(tag) {
+            const badge = document.createElement('span');
+            badge.classList.add('tag-badge');
+            badge.innerText = tag.name; // Use tag name
+
+            // If the tag is associated with the task, mark it as selected
+            if (selectedTags.includes(tag.name)) {
+                badge.classList.add('selected'); // Add a different color class for selected tags
+            }
+
+            // Add click event to select/unselect tags
+            badge.onclick = function() {
+                badge.classList.toggle('selected'); // Toggle the 'selected' class
+                updateSelectedTags();
+            };
+
+            tagsContainer.appendChild(badge);
+        });
+
+        // Update the hidden input with the currently selected tags and IDs
+        function updateSelectedTags() {
+            const selectedBadges = document.querySelectorAll('.tag-badge.selected');
+            const selectedTagNames = Array.from(selectedBadges).map(badge => badge.innerText);
+            document.getElementById('selectedTags').value = selectedTagNames.join(',');
+
+            // Update selected tag IDs
+            const selectedTagIds = selectedTagNames.map(name => {
+                const tag = allTags.find(t => t.name === name);
+                return tag ? tag.id : null;
+            }).filter(id => id !== null);
+
+            // Set the selected tag IDs to the hidden input
+            document.getElementById('selectedTagIds').value = selectedTagIds.join(',');
+        }
+
+        // Initialize the selected tags input field
+        updateSelectedTags();
     }
 
-    function closeTaskModal() {
-        document.getElementById('taskModal').style.display = 'none'; // Hide the edit modal
+    function taskDetailsModal(title, description, status, assignedTo, startDate, endDate, tags)  {
+        document.getElementById('detailTitle').textContent = title;
+        document.getElementById('detailDescription').textContent = description;
+        document.getElementById('detailStatus').textContent = status;
+        document.getElementById('detailAssignedTo').textContent = assignedTo ? assignedTo : 'Unassigned';
+        document.getElementById('detailStartDate').textContent = startDate ? startDate : 'Not set';
+        document.getElementById('detailEndDate').textContent = endDate ? endDate : 'Not set';
+
+        var tagsContainer = document.getElementById('detailTags');
+        tagsContainer.innerHTML = ''; // Clear any previous tags
+
+        var tagsArray = tags.split(',');
+        tagsArray.forEach(function(tag) {
+            var badge = document.createElement('span');
+            badge.classList.add('tag-badge');
+            badge.innerText = tag.trim();
+            tagsContainer.appendChild(badge);
+        });
     }
 
-    function confirmDelete(taskId) {
-        // Set the ID of the task to delete and show the delete confirmation modal
-        deleteTaskId = taskId;
-        const modal = document.getElementById('confirmDeleteModal');
-        modal.style.display = 'block';
+    function managerSetTaskToDelete(taskId) {
+        document.getElementById('deleteTaskId').value = taskId;
     }
-
-    function closeDeleteModal() {
-        document.getElementById('confirmDeleteModal').style.display = 'none'; // Hide the delete confirmation modal
-    }
-
-    function editTask(taskId, title, description, status, assignedTo, createdBy, startDate, endDate, tags) {
-        console.log('Edit button clicked for task: ', title); // Check if this logs correctly
-        showTaskModal(taskId, title, description, status, assignedTo, createdBy, startDate, endDate, tags);
-    }
-
-
-    // Close modals when the user clicks outside of them
-    window.onclick = function (event) {
-        const detailsModal = document.getElementById('taskDetailsModal');
-        const editModal = document.getElementById('taskModal');
-        const deleteModal = document.getElementById('confirmDeleteModal');
-
-        if (event.target === detailsModal) closeTaskDetailsModal();
-        if (event.target === editModal) closeTaskModal();
-        if (event.target === deleteModal) closeDeleteModal();
-    };
-
 </script>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
 </body>
-
-
-
 
 </html>
 

@@ -47,7 +47,7 @@ public class DevServlet extends HttpServlet {
 
             request.setAttribute("developerTasks", developerTasks);
             request.setAttribute("managersTasks", managersTasks);
-            request.setAttribute("allTags", allTags);
+            request.setAttribute("tagsList", allTags);
 
             request.getRequestDispatcher("devDash.jsp").forward(request, response);
         } else {

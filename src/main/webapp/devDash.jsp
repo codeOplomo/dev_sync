@@ -65,11 +65,23 @@
         }
 
         .tag-badge {
-            background-color: #f0f0f0;
+            display: inline-block;
             padding: 5px 10px;
-            border-radius: 4px;
+            margin: 3px;
+            border-radius: 12px;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            color: #000000;
+        }
+
+        .tag-badge.selected {
+            background-color: #17a2b8;
+            color: white;
             margin-right: 5px;
             display: inline-block;
+            cursor: pointer;
+            border: 1px solid #ccc;
         }
     </style>
 </head>
@@ -118,6 +130,12 @@
                     </td>
                     <td><%= task.getEndDate() != null ? task.getEndDate() : "N/A" %></td>
                     <td>
+                        <button type="button" class="btn btn-sm btn-warning" title="Details"
+                                data-bs-toggle="modal" data-bs-target="#taskDetailsModal"
+                                onclick="taskDetailsModal('<%= task.getTitle() %>','<%= task.getDescription() %>', '<%= task.getStatus()%>', '<%= task.getStartDate() %>',
+                                        '<%= task.getEndDate() %>', '<%= tags %>')">
+                            <i class="fa-solid fa-circle-info"></i>
+                        </button>
                         <button type="button" class="btn btn-sm btn-warning" title="Update"
                                 data-bs-toggle="modal" data-bs-target="#updateTaskModal"
                                 onclick="loadTaskData('<%= task.getId() %>', '<%= task.getTitle() %>', '<%= task.getDescription() %>', '<%= task.getEndDate() %>', '<%= tags %>')">
@@ -201,6 +219,10 @@
     </div>
 </div>
 
+<%
+    List<Tag> allTags = (List<Tag>) request.getAttribute("tagsList");
+%>
+
 <!-- Modal -->
 <div class="modal fade" id="updateTaskModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="updateTaskModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -213,6 +235,7 @@
                 <form id="updateTaskForm" action="taskForms" method="post">
                     <input type="hidden" name="id" id="taskId">
                     <input type="hidden" name="action" value="update" >
+                    <input type="hidden" name="selectedTagIds" id="selectedTagIds">
 
                     <div class="mb-3">
                         <label for="taskTitle" class="form-label">Title</label>
@@ -231,8 +254,8 @@
 
                     <div class="mb-3">
                         <label for="modalTags" class="form-label">Tags</label>
-                        <!-- Tags will be dynamically populated here as badges -->
                         <div id="modalTags" class="tags-container"></div>
+                        <input type="hidden" name="selectedTags" id="selectedTags">
                     </div>
 
                     <div class="modal-footer">
@@ -268,13 +291,75 @@
     </div>
 </div>
 
+<!-- Task Details Modal -->
+<div class="modal fade" id="taskDetailsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="taskDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="taskDetailsModalLabel">Task Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label"><strong>Title:</strong></label>
+                    <div id="detailTitle" class="text-wrap"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Description:</strong></label>
+                    <div id="detailDescription" class="text-wrap"></div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col">
+                        <label class="form-label"><strong>Start Date:</strong></label>
+                        <div id="detailStartDate" class="text-wrap"></div>
+                    </div>
+                    <div class="col">
+                        <label class="form-label"><strong>End Date:</strong></label>
+                        <div id="detailEndDate" class="text-wrap"></div>
+                    </div>
+                </div>
+
+                <!-- Assigned To and Status side by side -->
+                <div class="row mb-3">
+                    <div class="col">
+                        <label class="form-label"><strong>Status:</strong></label>
+                        <div id="detailStatus" class="text-wrap"></div>
+                    </div>
+                </div>
+
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Tags:</strong></label>
+                    <div id="detailTags" class="tags-container text-wrap"></div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script>
+    const allTags = [
+        <%
+            for (int i = 0; i < allTags.size(); i++) {
+                Tag tag = allTags.get(i); // Assuming Tag has getId() and getName()
+        %>
+        { "id": <%= tag.getId() %>, "name": "<%= tag.getName() %>" }<% if (i < allTags.size() - 1) { %>, <% } %>
+        <%
+            }
+        %>
+    ];
     function setTaskToDelete(taskId) {
         document.getElementById('deleteTaskId').value = taskId;
     }
 
-    function loadTaskData(id, title, description, endDate, tags) {
+    function loadTaskData(id, title, description, endDate, taskTags) {
         document.getElementById('taskId').value = id;
         document.getElementById('taskTitle').value = title;
         document.getElementById('taskDescription').value = description;
@@ -283,13 +368,47 @@
         var tagsContainer = document.getElementById('modalTags');
         tagsContainer.innerHTML = '';
 
-        var tagsArray = tags.split(',');
-        tagsArray.forEach(function(tag) {
-            var badge = document.createElement('span');
+        const selectedTags = taskTags.split(',').map(tag => tag.trim());
+        const selectedTagIds = selectedTags.map(tag => {
+            const foundTag = allTags.find(t => t.name === tag);
+            return foundTag ? foundTag.id : null;
+        }).filter(id => id !== null);
+
+        allTags.forEach(function(tag) {
+            const badge = document.createElement('span');
             badge.classList.add('tag-badge');
-            badge.innerText = tag.trim();
+            badge.innerText = tag.name; // Use tag name
+
+            // If the tag is associated with the task, mark it as selected
+            if (selectedTags.includes(tag.name)) {
+                badge.classList.add('selected'); // Add a different color class for selected tags
+            }
+
+            // Add click event to select/unselect tags
+            badge.onclick = function() {
+                badge.classList.toggle('selected'); // Toggle the 'selected' class
+                updateSelectedTags();
+            };
+
             tagsContainer.appendChild(badge);
         });
+
+        function updateSelectedTags() {
+            const selectedBadges = document.querySelectorAll('.tag-badge.selected');
+            const selectedTagNames = Array.from(selectedBadges).map(badge => badge.innerText);
+            document.getElementById('selectedTags').value = selectedTagNames.join(',');
+
+            // Update selected tag IDs
+            const selectedTagIds = selectedTagNames.map(name => {
+                const tag = allTags.find(t => t.name === name);
+                return tag ? tag.id : null;
+            }).filter(id => id !== null);
+
+            // Set the selected tag IDs to the hidden input
+            document.getElementById('selectedTagIds').value = selectedTagIds.join(',');
+        }
+
+        updateSelectedTags();
     }
 
     function updateTaskStatus(taskId, status) {
@@ -310,6 +429,26 @@
 
         xhr.send(params);
     }
+
+    function taskDetailsModal(title, description, status, startDate, endDate, tags)  {
+        document.getElementById('detailTitle').textContent = title;
+        document.getElementById('detailDescription').textContent = description;
+        document.getElementById('detailStatus').textContent = status;
+        document.getElementById('detailStartDate').textContent = startDate ? startDate : 'Not set';
+        document.getElementById('detailEndDate').textContent = endDate ? endDate : 'Not set';
+
+        var tagsContainer = document.getElementById('detailTags');
+        tagsContainer.innerHTML = ''; // Clear any previous tags
+
+        var tagsArray = tags.split(',');
+        tagsArray.forEach(function(tag) {
+            var badge = document.createElement('span');
+            badge.classList.add('tag-badge');
+            badge.innerText = tag.trim();
+            tagsContainer.appendChild(badge);
+        });
+    }
+
 </script>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
