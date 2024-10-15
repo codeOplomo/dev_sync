@@ -6,10 +6,12 @@
   To change this template use File | Settings | File Templates.
 --%>
 <%
-    if (session.getAttribute("user") == null) {
+    if (session.getAttribute("user") == null || session.getAttribute("loggedInManager") == null) {
+        session.invalidate();
         response.sendRedirect("login");
     }
 %>
+
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>

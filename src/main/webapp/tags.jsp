@@ -7,7 +7,8 @@
 --%>
 
 <%
-    if (session.getAttribute("user") == null) {
+    if (session.getAttribute("user") == null || session.getAttribute("loggedInManager") == null) {
+        session.invalidate();
         response.sendRedirect("login");
     }
 %>

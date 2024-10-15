@@ -7,7 +7,8 @@
 --%>
 
 <%
-    if (session.getAttribute("user") == null) {
+    if (session.getAttribute("user") == null || session.getAttribute("loggedInDeveloper") == null) {
+        session.invalidate();
         response.sendRedirect("login");
     }
 %>
@@ -120,12 +121,12 @@
                     <td><%= task.getDescription() %></td>
                     <td>
                         <select name="status" class="form-control"
-                                <%= task.getStatus() == TaskStatus.PENDING ? "disabled" : "" %>
+                                <%= (task.getStatus() == TaskStatus.PENDING || task.getStatus() == TaskStatus.OVERDUE) ? "disabled" : "" %>
                                 onchange="updateTaskStatus('<%= task.getId() %>', this.value)">
                             <option value="PENDING" <%= task.getStatus() == TaskStatus.PENDING ? "selected" : "" %> disabled>Pending</option>
                             <option value="IN_PROGRESS" <%= task.getStatus() == TaskStatus.IN_PROGRESS ? "selected" : "" %>>In Progress</option>
                             <option value="COMPLETED" <%= task.getStatus() == TaskStatus.COMPLETED ? "selected" : "" %>>Completed</option>
-                            <option value="OVERDUE" <%= task.getStatus() == TaskStatus.OVERDUE ? "selected" : "" %>>Overdue</option>
+                            <option value="OVERDUE" <%= task.getStatus() == TaskStatus.OVERDUE ? "selected" : "" %> disabled>Overdue</option>
                         </select>
                     </td>
                     <td><%= task.getEndDate() != null ? task.getEndDate() : "N/A" %></td>

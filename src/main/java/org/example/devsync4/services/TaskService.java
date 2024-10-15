@@ -15,6 +15,7 @@ public class TaskService {
         this.taskRepository = new TaskRepository();
     }
 
+
     public List<Task> findTasksByCreator(User creator) {
         List<Task> allTasks = this.findAll();
         return allTasks.stream()
