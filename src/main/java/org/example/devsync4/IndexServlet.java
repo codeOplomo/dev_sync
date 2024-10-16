@@ -34,7 +34,7 @@ public class IndexServlet extends HttpServlet {
 
             if (Role.MANAGER.equals(user.getRole())) {
                 session.setAttribute("loggedInManager", user);
-                response.sendRedirect("homeDash.jsp");
+                response.sendRedirect("homeDash");
             } else if (Role.DEVELOPER.equals(user.getRole())) {  // Check for developer role
                 session.setAttribute("loggedInDeveloper", user);
                 response.sendRedirect("devDash");
@@ -52,4 +52,5 @@ public class IndexServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.getRequestDispatcher("index.jsp").forward(request, response);
     }
+
 }

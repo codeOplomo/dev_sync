@@ -4,6 +4,7 @@
         <class>org.example.devsync4.entities.User</class>
         <class>org.example.devsync4.entities.Task</class>
         <class>org.example.devsync4.entities.Tag</class>
+        <class>org.example.devsync4.entities.Request</class>
         <properties>
             <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
             <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/postgres"/>

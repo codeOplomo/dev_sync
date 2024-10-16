@@ -6,6 +6,7 @@ import org.example.devsync4.repositories.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class UserService {
     private final UserRepository userRepository = new UserRepository();
@@ -19,6 +20,16 @@ public class UserService {
         }
 
         return null;
+    }
+
+    public List<User> getAllDevelopersExcluding(Long excludedDeveloperId) {
+        // Fetch all users with the "Developer" role
+        List<User> developers = this.findByRole(Role.DEVELOPER);
+
+        // Filter out the developer with the given ID
+        return developers.stream()
+                .filter(dev -> !dev.getId().equals(excludedDeveloperId))
+                .collect(Collectors.toList());
     }
 
     public List<User> findByRole(Role role) {

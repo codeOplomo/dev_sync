@@ -104,7 +104,7 @@
             </thead>
             <tbody>
             <%
-                List<Task> tasks = (List<Task>) request.getAttribute("tasks");
+                List<Task> tasks = (List<Task>) request.getAttribute("tasksList");
                 if (tasks != null && !tasks.isEmpty()) {
                     for (Task task : tasks) {
                         String tags = task.getTags().stream().map(Tag::getName).collect(Collectors.joining(", "));
@@ -123,7 +123,6 @@
                                     '<%= task.getEndDate() %>', '<%= tags %>')">
                         <i class="fa-solid fa-circle-info"></i>
                     </button>
-
                     <button type="button" class="btn btn-sm btn-warning" title="Update"
                             data-bs-toggle="modal" data-bs-target="#taskModal"
                             onclick="updateTaskModal('<%= task.getId() %>', '<%= task.getTitle() %>', '<%= task.getDescription() %>', '<%= task.getEndDate() %>', '<%= tags %>', '<%= (task.getAssignedTo() != null) ? task.getAssignedTo().getId() : "" %>')">

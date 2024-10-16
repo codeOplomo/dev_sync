@@ -37,6 +37,9 @@ public class Task {
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
+    @Column(name = "is_reassigned", nullable = false)
+    private boolean isReassigned = false;
+
     @Expose(serialize = false)
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

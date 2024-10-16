@@ -28,9 +28,6 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @OneToMany(mappedBy = "assignedTo")
-    private List<Task> tasks;
-
     @Column(name = "daily_tokens")
     private int dailyTokens = 2;
 
@@ -42,5 +39,8 @@ public class User {
 
     @Column(name = "last_monthly_reset")
     private LocalDateTime lastMonthlyReset = LocalDateTime.now();
+
+//    @OneToMany(mappedBy = "assignedTo", fetch = FetchType.LAZY)
+//    private List<Task> tasks;
 }
 

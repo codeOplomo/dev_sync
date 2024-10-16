@@ -34,7 +34,7 @@
     <ul class="nav flex-column">
         <% if (currentUser.getRole() != null && Role.MANAGER.equals(currentUser.getRole())) { %>
         <li class="nav-item">
-            <a href="homeDash.jsp" class="nav-link <%= request.getRequestURI().contains("homeDash.jsp") ? "active" : "" %>">
+            <a href="homeDash" class="nav-link <%= request.getRequestURI().contains("homeDash.jsp") ? "active" : "" %>">
                 <i class="fas fa-home"></i> Home
             </a>
         </li>

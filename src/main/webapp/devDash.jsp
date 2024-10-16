@@ -21,6 +21,8 @@
 <%@ page import="org.example.devsync4.entities.enumerations.TaskStatus" %>
 <%@ page import="java.time.LocalDate" %>
 <%@ page import="java.util.stream.Collectors" %>
+<%@ page import="org.example.devsync4.entities.Request" %>
+<%@ page import="org.example.devsync4.entities.enumerations.RequestStatus" %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -179,15 +181,29 @@
                 <tbody>
                 <%
                     List<Task> managerTasks = (List<Task>) request.getAttribute("managersTasks");
+                    List<Request> req = (List<Request>) request.getAttribute("unassignmentRequests");
+
                     if (managerTasks != null && !managerTasks.isEmpty()) {
                         for (Task task : managerTasks) {
+
+                            // Check if there is a pending unassignment request for this task
+                            boolean hasPendingRequest = false;
+                            if (req != null) {
+                                for (Request unassignmentRequest : req) {
+                                    if (unassignmentRequest.getTask().getId().equals(task.getId()) &&
+                                            unassignmentRequest.getStatus() == RequestStatus.PENDING) {
+                                        hasPendingRequest = true;
+                                        break;
+                                    }
+                                }
+                            }
                 %>
                 <tr>
                     <td><%= task.getTitle() %></td>
                     <td><%= task.getDescription() %></td>
                     <td>
                         <select name="status" class="form-control"
-                                <%= task.getStatus() == TaskStatus.PENDING ? "disabled" : "" %>
+                                <%= (task.getStatus() == TaskStatus.PENDING || task.getStatus() == TaskStatus.OVERDUE) ? "disabled" : "" %>
                                 onchange="updateTaskStatus('<%= task.getId() %>', this.value)">
                             <option value="PENDING" <%= task.getStatus() == TaskStatus.PENDING ? "selected" : "" %> disabled>Pending</option>
                             <option value="IN_PROGRESS" <%= task.getStatus() == TaskStatus.IN_PROGRESS ? "selected" : "" %> >In Progress</option>
@@ -198,10 +214,12 @@
                     <td><%= task.getEndDate() != null ? task.getEndDate() : "N/A" %></td>
                     <td><%= task.getCreatedBy().getName() %></td>
                     <td>
-                        <form action="requestUnassignTask" method="post">
-                            <input type="hidden" name="taskId" value="<%= task.getId() %>">
-                            <button type="submit" class="btn btn-secondary btn-sm">Request Unassignment</button>
-                        </form>
+                        <button type="button" class="btn btn-secondary btn-sm" title="Unassign Request"
+                                data-bs-toggle="modal" data-bs-target="#unassignRequestModal"
+                                onclick="setTaskToUnassign('<%= task.getId() %>')"
+                                <%= (task.getStatus() != TaskStatus.PENDING || hasPendingRequest) ? "disabled" : "" %>>
+                            Request Unassignment
+                        </button>
                     </td>
                 </tr>
                 <%
@@ -217,12 +235,37 @@
                 </tbody>
             </table>
         </div>
+
+
     </div>
 </div>
 
 <%
     List<Tag> allTags = (List<Tag>) request.getAttribute("tagsList");
 %>
+
+<div class="modal fade" id="unassignRequestModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="unassignRequestModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="unassignRequestModalLabel">Request Unassignment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="unassignmentRequest" method="post">
+                <input type="hidden" name="unassigneTaskId" id="unassigneTaskId">
+                <div class="modal-body">
+                    Reason for unassigning this task:
+                    <textarea class="form-control" name="reason" rows="3" required></textarea>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <button type="submit" class="btn btn-primary">Submit Request</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 
 <!-- Modal -->
 <div class="modal fade" id="updateTaskModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="updateTaskModalLabel" aria-hidden="true">
@@ -356,8 +399,41 @@
             }
         %>
     ];
+
+    function updateTaskStatus(taskId, status) {
+        fetch('<%= request.getContextPath() %>/updateTaskStatus', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                taskId: taskId,
+                status: status,
+            }),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json(); // Assuming your server returns JSON
+            })
+            .then(data => {
+                // Handle success response (optional)
+                console.log('Task status updated successfully:', data);
+                // You can display a notification or update the UI as needed
+            })
+            .catch(error => {
+                // Handle error response (optional)
+                console.error('Error updating task status:', error);
+            });
+    }
+
     function setTaskToDelete(taskId) {
         document.getElementById('deleteTaskId').value = taskId;
+    }
+
+    function setTaskToUnassign(taskId) {
+        document.getElementById('unassigneTaskId').value = taskId;
     }
 
     function loadTaskData(id, title, description, endDate, taskTags) {
@@ -410,25 +486,6 @@
         }
 
         updateSelectedTags();
-    }
-
-    function updateTaskStatus(taskId, status) {
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", "updateTaskStatus", true);
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-        var params = "taskId=" + taskId + "&status=" + status;
-
-        // Handle the response from the server
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                console.log("Task status updated successfully");
-            } else if (xhr.readyState === 4 && xhr.status !== 200) {
-                console.error("Failed to update task status");
-            }
-        };
-
-        xhr.send(params);
     }
 
     function taskDetailsModal(title, description, status, startDate, endDate, tags)  {
