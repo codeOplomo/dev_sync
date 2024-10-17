@@ -11,6 +11,7 @@ import org.example.devsync4.entities.User;
 import org.example.devsync4.entities.enumerations.RequestStatus;
 import org.example.devsync4.entities.enumerations.Role;
 import org.example.devsync4.entities.enumerations.TaskStatus;
+import org.example.devsync4.exceptions.TaskNotFoundException;
 import org.example.devsync4.services.RequestService;
 import org.example.devsync4.services.TaskService;
 
@@ -30,7 +31,11 @@ public class RequestServlet extends HttpServlet {
             // Fetch the task to check its status
             Task task = taskService.findById(taskId);
 
-            if (task != null && task.getStatus() == TaskStatus.PENDING) {
+            if (task == null) {
+                throw new TaskNotFoundException("Task not found.");
+            }
+
+            if (task.getStatus() == TaskStatus.PENDING) {
                 // Check if there is already a pending unassignment request for this task by the developer
                 boolean hasPendingRequest = requestService.hasRequestForTask(taskId, currentUser.getId());
 

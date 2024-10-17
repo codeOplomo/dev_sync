@@ -91,6 +91,30 @@
         <h2 class="text-center">Manage Tasks</h2>
         <a href="taskForms" class="btn btn-primary mb-3">Add Task</a>
 
+        <!-- Filter Icon -->
+        <button class="btn btn-outline-secondary m-1" onclick="toggleScrollableTagBar()">
+            <i class="fa-solid fa-filter"></i> Filter
+        </button>
+
+        <div class="mb-3">
+            <!-- Scrollable Tag Bar -->
+            <div id="scrollableTagBar" class="scrollable-tag-bar d-flex flex-row mb-3" style="overflow-x: auto; white-space: nowrap; display: none;">
+                <button class="btn btn-outline-secondary m-1" onclick="resetFilter()">Reset Filter</button>
+                <%
+                    List<Tag> filteringTags = (List<Tag>) request.getAttribute("tagsList");
+                    if (filteringTags != null && !filteringTags.isEmpty()) {
+                        for (Tag tag : filteringTags) {
+                %>
+                <button class="btn btn-outline-primary m-1 tag-filter-badge" onclick="filterTasksByTag('<%= tag.getId() %>')">
+                    <%= tag.getName() %>
+                </button>
+                <%
+                        }
+                    }
+                %>
+            </div>
+        </div>
+
         <table class="table table-bordered table-striped">
             <thead class="thead-light">
             <tr>
@@ -154,144 +178,27 @@
     </div>
 </div>
 
-<!-- Task Update Modal -->
-<div class="modal fade" id="taskModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="updateTaskModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="updateTaskModalLabel">Update Task</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="updateTaskForm" action="taskForms" method="post">
-                    <input type="hidden" name="id" id="taskId">
-                    <input type="hidden" name="action" value="update" >
-                    <input type="hidden" name="selectedTagIds" id="selectedTagIds">
-
-                    <div class="mb-3">
-                        <label for="modalEditTitle" class="form-label">Title</label>
-                        <input type="text" class="form-control" id="modalEditTitle" name="title" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="modalEditDescription" class="form-label">Description</label>
-                        <textarea class="form-control" id="modalEditDescription" name="description" rows="3" required></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="modalAssignedTo" class="form-label">Assigned To</label>
-                        <select class="form-select" id="modalAssignedTo" name="assignedTo" required>
-                            <option value="">Unassigned</option> <!-- Default "Unassigned" option -->
-                            <% List<User> users = (List<User>) request.getAttribute("developers");
-                                if (users != null) {
-                                    for (User user : users) { %>
-                            <option value="<%= user.getId() %>"><%= user.getName() %></option>
-                            <% } } %>
-                        </select>
-                    </div>
-
-
-                    <div class="mb-3">
-                        <label for="modalEndDate" class="form-label">End Date</label>
-                        <input type="date" class="form-control" id="modalEndDate" name="endDate" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="modalTags" class="form-label">Tags</label>
-                        <div id="modalTags" class="tags-container"></div>
-                        <input type="hidden" name="selectedTags" id="selectedTags">
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Update Task</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Confirmation Delete Modal -->
-<div class="modal fade" id="confirmDeleteModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="deleteTaskModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteTaskModalLabel">Confirm Task Deletion</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to delete this task?
-            </div>
-            <div class="modal-footer">
-                <form id="deleteTaskForm" action="taskForms" method="post">
-                    <input type="hidden" name="action" value="delete">
-                    <input type="hidden" name="id" id="deleteTaskId">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Task Details Modal -->
-<div class="modal fade" id="taskDetailsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="taskDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="taskDetailsModalLabel">Task Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label"><strong>Title:</strong></label>
-                    <div id="detailTitle" class="text-wrap"></div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label"><strong>Description:</strong></label>
-                    <div id="detailDescription" class="text-wrap"></div>
-                </div>
-
-                <!-- Assigned To and Status side by side -->
-                <div class="row mb-3">
-                    <div class="col">
-                        <label class="form-label"><strong>Assigned To:</strong></label>
-                        <div id="detailAssignedTo" class="text-wrap"></div>
-                    </div>
-                    <div class="col">
-                        <label class="form-label"><strong>Status:</strong></label>
-                        <div id="detailStatus" class="text-wrap"></div>
-                    </div>
-                </div>
-
-                <!-- Start Date and End Date side by side -->
-                <div class="row mb-3">
-                    <div class="col">
-                        <label class="form-label"><strong>Start Date:</strong></label>
-                        <div id="detailStartDate" class="text-wrap"></div>
-                    </div>
-                    <div class="col">
-                        <label class="form-label"><strong>End Date:</strong></label>
-                        <div id="detailEndDate" class="text-wrap"></div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label"><strong>Tags:</strong></label>
-                    <div id="detailTags" class="tags-container text-wrap"></div>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 
 <script>
+
+    function toggleScrollableTagBar() {
+        const tagBar = document.getElementById('scrollableTagBar');
+        tagBar.style.display = (tagBar.style.display === 'none' || tagBar.style.display === '') ? 'flex' : 'none';
+    }
+
+    function filterTasksByTag(tagId) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('tagId', tagId); // Set tagId as query parameter
+        window.location.href = url.toString(); // Reload page with the new tagId parameter
+    }
+
+    function resetFilter() {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('tagId'); // Remove tagId parameter
+        window.location.href = url.toString(); // Reload page without the tagId parameter
+    }
+
     const allTags = [
         <%
             for (int i = 0; i < allTags.size(); i++) {

@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.devsync4.entities.Tag;
 import org.example.devsync4.services.TagService;
+import org.example.devsync4.utils.InputValidator;
 
 import java.io.IOException;
 
@@ -20,8 +21,18 @@ public class TagFormsServlet extends HttpServlet {
         String id = request.getParameter("id");
         String name = request.getParameter("tagName");
 
-        // Handle update tag operation
-        if ("update".equals(action) && id != null) {
+        // Use InputValidator for validation
+        if (!InputValidator.isValidName(name)) {
+            response.sendRedirect("tags?action=" + action + "&error=Tag name cannot be empty");
+            return;
+        }
+
+        if ("update".equals(action)) {
+            if (!InputValidator.isValidId(id)) {
+                response.sendRedirect("tags?action=update&error=Invalid tag ID");
+                return;
+            }
+
             Tag tag = new Tag();
             tag.setId(Long.parseLong(id));
             tag.setName(name);
@@ -29,12 +40,15 @@ public class TagFormsServlet extends HttpServlet {
             tagService.update(tag);
             response.sendRedirect("tags?action=update&message=Tag updated successfully");
 
-            // Handle delete tag operation
-        } else if ("delete".equals(action) && id != null) {
+        } else if ("delete".equals(action)) {
+            if (!InputValidator.isValidId(id)) {
+                response.sendRedirect("tags?action=delete&error=Invalid tag ID");
+                return;
+            }
+
             tagService.delete(Long.parseLong(id));
             response.sendRedirect("tags?action=delete&message=Tag deleted successfully");
 
-            // Handle add new tag operation
         } else {
             Tag tag = new Tag();
             tag.setName(name);
@@ -43,4 +57,6 @@ public class TagFormsServlet extends HttpServlet {
             response.sendRedirect("tags?action=add&message=Tag added successfully");
         }
     }
+
 }
+

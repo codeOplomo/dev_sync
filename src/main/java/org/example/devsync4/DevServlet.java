@@ -24,7 +24,7 @@ public class DevServlet extends HttpServlet {
 
     private TaskService taskService = new TaskService();
     private TagService tagService = new TagService();
-    private RequestService requestService = new RequestService(); // Add request service
+    private RequestService requestService = new RequestService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -32,7 +32,6 @@ public class DevServlet extends HttpServlet {
         User loggedInDeveloper = (User) session.getAttribute("loggedInDeveloper");
 
         if (loggedInDeveloper != null) {
-            // Fetch tasks assigned to the developer
             List<Task> assignedTasks = taskService.getTasksAssignedToUser(loggedInDeveloper.getId());
 
             List<Task> developerTasks = new ArrayList<>();
@@ -47,19 +46,15 @@ public class DevServlet extends HttpServlet {
                 }
             }
 
-            // Fetch all tags
             List<Tag> allTags = tagService.findAll();
 
-            // Fetch unassignment requests made by the logged-in developer
             List<Request> unassignmentRequests = requestService.getDeveloperRequests(loggedInDeveloper.getId());
 
-            // Set attributes to pass to JSP
             request.setAttribute("developerTasks", developerTasks);
             request.setAttribute("managersTasks", managersTasks);
             request.setAttribute("tagsList", allTags);
-            request.setAttribute("unassignmentRequests", unassignmentRequests); // Pass unassignment requests
+            request.setAttribute("unassignmentRequests", unassignmentRequests);
 
-            // Forward to JSP
             request.getRequestDispatcher("devDash.jsp").forward(request, response);
         } else {
             response.sendRedirect("login");

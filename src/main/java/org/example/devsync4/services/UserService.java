@@ -2,6 +2,9 @@ package org.example.devsync4.services;
 
 import org.example.devsync4.entities.User;
 import org.example.devsync4.entities.enumerations.Role;
+import org.example.devsync4.exceptions.UserAuthorizationException;
+import org.example.devsync4.exceptions.UserAuthenticationException;
+import org.example.devsync4.exceptions.UserNotFoundException;
 import org.example.devsync4.repositories.UserRepository;
 
 import java.util.List;
@@ -14,12 +17,42 @@ public class UserService {
     public User authenticateUser(String email, String password) {
         Optional<User> optionalUser = userRepository.findByEmail(email);
 
-        // Check if user is present and if the password matches
-        if (optionalUser.isPresent() && optionalUser.get().getPassword().equals(password)) {
-            return optionalUser.get();
+        // Check if user exists, otherwise throw exception
+        if (optionalUser.isEmpty()) {
+            throw new UserNotFoundException("User with email " + email + " not found");
         }
 
-        return null;
+        User user = optionalUser.get();
+
+        // Check if password matches, otherwise throw exception
+        if (!user.getPassword().equals(password)) {
+            throw new UserAuthenticationException("Incorrect password");
+        }
+
+        return user;
+    }
+
+    // Method to authenticate and authorize user
+    public User authenticateAndAuthorizeUser(String email, String password) throws UserAuthenticationException {
+        User user = authenticateUser(email, password);
+
+        // Add role validation if needed
+        if (user == null) {
+            throw new UserAuthenticationException("Invalid email or password");
+        }
+
+        return user;
+    }
+
+    // Role-based redirection logic
+    public String getRedirectPageForUser(User user) {
+        if (Role.MANAGER.equals(user.getRole())) {
+            return "homeDash";
+        } else if (Role.DEVELOPER.equals(user.getRole())) {
+            return "devDash";
+        } else {
+            throw new UserAuthorizationException("User role not authorized for access");
+        }
     }
 
     public List<User> getAllDevelopersExcluding(Long excludedDeveloperId) {
