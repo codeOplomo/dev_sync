@@ -1,4 +1,4 @@
-package org.example.devsync4;
+package org.example.devsync4.servlets;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.devsync4.entities.Tag;
-import org.example.devsync4.entities.Task;
 import org.example.devsync4.repositories.TagRepository;
 
 import java.io.IOException;

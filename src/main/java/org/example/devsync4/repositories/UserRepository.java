@@ -14,13 +14,23 @@ public class UserRepository {
 
     private final EntityManagerFactory entityManagerFactory = jakarta.persistence.Persistence.createEntityManagerFactory("myJPAUnit");
 
-    public User findById(Long id) {
+    public Optional<User> findById(Long id) {
         EntityManager em = entityManagerFactory.createEntityManager();
-        em.getTransaction().begin();
-        User user = em.find(User.class, id);
-        em.close();
-        return user;
+        User user = null;
+        try {
+            em.getTransaction().begin();
+            user = em.find(User.class, id); // Find the user by ID
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            em.getTransaction().rollback(); // Handle transaction rollback if needed
+            throw e;
+        } finally {
+            em.close();
+        }
+
+        return Optional.ofNullable(user); // Return the user wrapped in an Optional
     }
+
 
     public Optional<User> findByEmail(String email) {
         EntityManager em = entityManagerFactory.createEntityManager();
@@ -52,14 +62,22 @@ public class UserRepository {
     }
 
 
-    public void save(User user) {
+    public User save(User user) {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction transaction = entityManager.getTransaction();
-        transaction.begin();
-        entityManager.persist(user);
-        transaction.commit();
-        entityManager.close();
+        try {
+            transaction.begin();
+            entityManager.persist(user);
+            transaction.commit();
+        } catch (Exception e) {
+            transaction.rollback();
+            throw e;
+        } finally {
+            entityManager.close();
+        }
+        return user;
     }
+
 
 
     public List<User> findAll() {
@@ -71,13 +89,22 @@ public class UserRepository {
     }
 
 
-    public void update(User user) {
+    public User update(User user) {
         EntityManager em = entityManagerFactory.createEntityManager();
-        em.getTransaction().begin();
-        em.merge(user);
-        em.getTransaction().commit();
-        em.close();
+        User updatedUser = null;
+        try {
+            em.getTransaction().begin();
+            updatedUser = em.merge(user);
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            em.getTransaction().rollback();
+            throw e;
+        } finally {
+            em.close();
+        }
+        return updatedUser;
     }
+
 
     public void delete(Long id) {
         EntityManager em = entityManagerFactory.createEntityManager();

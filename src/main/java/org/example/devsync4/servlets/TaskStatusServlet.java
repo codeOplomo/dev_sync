@@ -1,4 +1,4 @@
-package org.example.devsync4;
+package org.example.devsync4.servlets;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;

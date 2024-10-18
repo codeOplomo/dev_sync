@@ -6,7 +6,7 @@
 
     <servlet>
         <servlet-name>IndexServlet</servlet-name>
-        <servlet-class>org.example.devsync4.IndexServlet</servlet-class>
+        <servlet-class>org.example.devsync4.servlets.IndexServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
@@ -20,7 +20,7 @@
 
     <servlet>
         <servlet-name>TaskFormsServlet</servlet-name>
-        <servlet-class>org.example.devsync4.TaskFormsServlet</servlet-class>
+        <servlet-class>org.example.devsync4.servlets.TaskFormsServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>

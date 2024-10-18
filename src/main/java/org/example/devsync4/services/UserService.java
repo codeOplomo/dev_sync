@@ -12,7 +12,17 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class UserService {
-    private final UserRepository userRepository = new UserRepository();
+    private final UserRepository userRepository;
+
+    public UserService() {
+        // Initialize the repository or handle it gracefully here if needed
+        this.userRepository = new UserRepository(); // Example: fallback to a default repository instance
+    }
+
+    // Constructor with dependency injection
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     public User authenticateUser(String email, String password) {
         Optional<User> optionalUser = userRepository.findByEmail(email);
@@ -69,7 +79,7 @@ public class UserService {
         return userRepository.findByRole(role);
     }
 
-    public User findById(Long id) {
+    public Optional<User> findById(Long id) {
         return userRepository.findById(id);
     }
 
@@ -77,13 +87,14 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public void save(User user) {
-        userRepository.save(user);
+    public User save(User user) {
+        return userRepository.save(user);
     }
 
-    public void update(User user) {
-        userRepository.update(user);
+    public User update(User user) {
+        return userRepository.save(user);
     }
+
 
     public void delete(Long id) {
         userRepository.delete(id);

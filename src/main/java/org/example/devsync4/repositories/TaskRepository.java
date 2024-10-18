@@ -44,13 +44,15 @@ public class TaskRepository {
         return em.find(Task.class, id);
     }
 
-    public void save(Task task) {
+    public Task save(Task task) {
         EntityManager em = emf.createEntityManager();
         em.getTransaction().begin();
         em.persist(task);
         em.getTransaction().commit();
         em.close();
+        return task; // Return the saved entity
     }
+
 
     public void update(Task task) {
         EntityManager em = emf.createEntityManager();

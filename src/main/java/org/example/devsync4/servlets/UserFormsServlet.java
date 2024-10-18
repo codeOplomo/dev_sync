@@ -1,6 +1,5 @@
-package org.example.devsync4;
+package org.example.devsync4.servlets;
 
-import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -8,12 +7,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.devsync4.entities.User;
 import org.example.devsync4.entities.enumerations.Role;
-import org.example.devsync4.repositories.UserRepository;
 import org.example.devsync4.services.UserService;
 import org.example.devsync4.utils.InputValidator;
 
 import java.io.IOException;
-import java.util.List;
+
 @WebServlet(name = "userForms", value = "/userForms")
 public class UserFormsServlet extends HttpServlet {
 
